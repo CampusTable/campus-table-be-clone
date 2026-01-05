@@ -3,17 +3,17 @@ name: spring-boot-cicd # 워크플로 이름
 on:
   push:
     branches: # 워크플로 대상 브랜치
-#      - main
+      - main
 #      - test
 
 env:
-  PROJECT_NAME: my-project # 프로젝트 명
+  PROJECT_NAME: campus-table-clone # 프로젝트 명
   DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}
   APP_IMAGE_SUFFIX: "-back"
-  MAIN_PORT: "8080"
-  TEST_PORT: "8081"
+  MAIN_PORT: "8090"
+  TEST_PORT: "8091"
   APP_EXPOSE_PORT: "8080"
-  MOUNT_DIR: "/volume/project/..."
+  MOUNT_DIR: "~/campus-table/server"
   SPRING_PROFILE_MAIN: "prod"
   SPRING_PROFILE_TEST: "prod"
   TIME_ZONE: "Asia/Seoul"
