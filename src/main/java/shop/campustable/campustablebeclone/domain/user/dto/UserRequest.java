@@ -9,13 +9,11 @@ import shop.campustable.campustablebeclone.domain.user.entity.User;
 public class UserRequest {
 
 
-  private Long userId;
   private String password;
   private String role;
 
-  public static User toEntity(UserRequest request) {
+  public  User toEntity(UserRequest request) {
       User user = User.builder()
-          .userId(request.getUserId())
           .password(request.getPassword())
           .role(request.getRole())
           .build();
