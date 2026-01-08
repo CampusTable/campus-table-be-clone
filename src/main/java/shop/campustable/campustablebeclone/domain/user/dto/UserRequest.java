@@ -8,12 +8,13 @@ import shop.campustable.campustablebeclone.domain.user.entity.User;
 @Setter
 public class UserRequest {
 
-
+  private Long studentId;
   private String password;
   private String role;
 
   public  User toEntity(UserRequest request) {
       User user = User.builder()
+          .studentId(studentId)
           .password(request.getPassword())
           .role(request.getRole())
           .build();
