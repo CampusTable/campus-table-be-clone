@@ -4,10 +4,13 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import shop.campustable.campustablebeclone.domain.auth.dto.SejongMemberInfo;
+import shop.campustable.campustablebeclone.domain.auth.service.SejongPortalLoginService;
 import shop.campustable.campustablebeclone.domain.user.dto.UserRequest;
 import shop.campustable.campustablebeclone.domain.user.dto.UserResponse;
 import shop.campustable.campustablebeclone.domain.user.dto.UserUpdateRequest;
 import shop.campustable.campustablebeclone.domain.user.entity.User;
+import shop.campustable.campustablebeclone.domain.user.entity.UserRole;
 import shop.campustable.campustablebeclone.domain.user.repository.UserRepository;
 
 @Service
@@ -16,14 +19,25 @@ import shop.campustable.campustablebeclone.domain.user.repository.UserRepository
 public class UserService {
 
   private final UserRepository userRepository;
+  private final SejongPortalLoginService sejongPortalLoginService;
 
   public UserResponse createUser(UserRequest request) {
-    User user = request.toEntity(request);
-    userRepository.save(user);
 
-    UserResponse userResponse = new UserResponse(user);
-    return userResponse;
+    SejongMemberInfo sejongMemberInfo = sejongPortalLoginService.getMemberAuthInfos(
+        String.valueOf(request.getStudentId()),
+        request.getPassword()
+    );
 
+    User user = User.builder()
+        .studentId(request.getStudentId())
+        .password(request.getPassword())
+        .role(request.getRole() != null ? request.getRole() : UserRole.USER)
+        .name(sejongMemberInfo.getName())
+        .build();
+
+  userRepository.save(user);
+
+  return new UserResponse(user);
   }
 
   public List<UserResponse> getAllUsers() {

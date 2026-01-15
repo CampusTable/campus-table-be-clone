@@ -2,6 +2,8 @@ package shop.campustable.campustablebeclone.domain.user.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -32,10 +34,13 @@ public class User {
   @Column(name = "password")
   private String password;
 
-  @Column(name = "student_number", unique = true,  length = 20)
-  private String studentNumber;
-
+  @Enumerated(EnumType.STRING)
   @Column(name = "role")
-  private String role;
+  private UserRole role;
+
+  @Column(name = "name")
+  private String name;
+
+
 
 }
