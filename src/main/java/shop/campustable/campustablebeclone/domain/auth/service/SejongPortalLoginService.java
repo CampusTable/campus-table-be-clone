@@ -33,7 +33,7 @@ public class SejongPortalLoginService {
       doPortalLogin(client, sejongPortalId, sejongPortalPw);
 
       // SSO 리다이렉트 -> 고전독서인증 사이트
-      String ssoUrl = "http://classic.sejong.ac.kr/_custom/sejong/sso/sso-return.jsp?returnUrl=https://classic.sejong.ac.kr/classic/index.do";
+      String ssoUrl = "https://classic.sejong.ac.kr/_custom/sejong/sso/sso-return.jsp?returnUrl=https://classic.sejong.ac.kr/classic/index.do";
       Request ssoReq = new Request.Builder().url(ssoUrl).get().build();
       try (Response ssoResp = client.newCall(ssoReq).execute()) {
         if (!ssoResp.isSuccessful()) {
