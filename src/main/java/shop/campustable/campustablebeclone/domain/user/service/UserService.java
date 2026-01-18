@@ -28,12 +28,13 @@ public class UserService {
         request.getPassword()
     );
 
-    User user = User.builder()
+    User user = userRepository.findByStudentId(request.getStudentId())
+        .orElseGet(()->User.builder()
         .studentId(request.getStudentId())
         .password(request.getPassword())
         .role(request.getRole() != null ? request.getRole() : UserRole.USER)
         .name(sejongMemberInfo.getName())
-        .build();
+        .build());
 
   userRepository.save(user);
 

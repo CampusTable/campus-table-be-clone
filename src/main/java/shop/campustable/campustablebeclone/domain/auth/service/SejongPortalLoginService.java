@@ -97,6 +97,8 @@ public class SejongPortalLoginService {
           return response;
         }
         response.close();
+        tryCount++;
+        log.warn("[PortalLogin] Timeout 발생 -> 재시도... ({}회)", tryCount);
       } catch (SocketTimeoutException e) {
         tryCount++;
         log.warn("[PortalLogin] Timeout 발생 -> 재시도... ({}회)", tryCount);
@@ -137,16 +139,10 @@ public class SejongPortalLoginService {
 
   private OkHttpClient buildClient() {
     try {
-      SSLContext sslCtx = SSLContext.getInstance("SSL");
-      sslCtx.init(null, new TrustManager[]{trustAllManager()}, new SecureRandom());
-      SSLSocketFactory sslFactory = sslCtx.getSocketFactory();
-      HostnameVerifier hostnameVerifier = (hostname, session) -> true;
       CookieManager cookieManager = new CookieManager();
       cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
 
       return new OkHttpClient.Builder()
-          .sslSocketFactory(sslFactory, trustAllManager())
-          .hostnameVerifier(hostnameVerifier)
           .cookieJar(new JavaNetCookieJar(cookieManager))
           .build();
     } catch (Exception e) {

@@ -14,12 +14,12 @@ public class UserRequest {
   private UserRole role;
 
   public  User toEntity(UserRequest request) {
-      User user = User.builder()
+      return User.builder()
           .studentId(studentId)
           .password(request.getPassword())
           .role(request.getRole())
           .build();
-      return user;
+
   }
 
 }
