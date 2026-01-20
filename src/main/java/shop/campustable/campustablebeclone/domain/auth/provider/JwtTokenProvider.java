@@ -9,6 +9,10 @@ import java.util.Date;
 import javax.crypto.SecretKey;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -18,12 +22,14 @@ public class JwtTokenProvider {
   private final SecretKey key;
   private final long expirationInMs;
   private final long refreshInMs;
+  private final UserDetailsService userDetailsService;
 
-  public JwtTokenProvider(@Value("${jwt.secret}") String secret){
+  public JwtTokenProvider(@Value("${jwt.secret}") String secret, UserDetailsService userDetailsService) {
 
     this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     this.expirationInMs = 1000 * 60 * 60;
     this.refreshInMs = 1000 * 60 * 60 * 24 * 14;
+    this.userDetailsService = userDetailsService;
 
   }
 
@@ -50,6 +56,16 @@ public class JwtTokenProvider {
         .expiration(validityDate)
         .signWith(key, SIG.HS256)
         .compact();
+  }
+
+  public Authentication getAuthentication(String token){
+
+    Long studentId = getStudentId(token);
+
+    UserDetails userDetails = userDetailsService.loadUserByUsername(String.valueOf(studentId));
+
+    return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+
   }
 
   public Long getStudentId(String token){
