@@ -4,6 +4,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.Jwts.SIG;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.Date;
 import javax.crypto.SecretKey;
 import lombok.extern.slf4j.Slf4j;
@@ -16,21 +17,35 @@ public class JwtTokenProvider {
 
   private final SecretKey key;
   private final long expirationInMs;
+  private final long refreshInMs;
 
   public JwtTokenProvider(@Value("${jwt.secret}") String secret){
 
     this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     this.expirationInMs = 1000 * 60 * 60;
+    this.refreshInMs = 1000 * 60 * 60 * 24 * 14;
 
   }
 
-  public String createToken(Long studentId, String role){
+  public String createAccessToken(Long studentId, String role){
     long now = (new Date()).getTime();
     Date validityDate = new Date(now + this.expirationInMs);
 
     return Jwts.builder()
         .subject(String.valueOf(studentId))
         .claim("role", role)
+        .issuedAt(new Date())
+        .expiration(validityDate)
+        .signWith(key, SIG.HS256)
+        .compact();
+  }
+
+  public String createRefreshToken(Long studentId){
+    long now = (new Date()).getTime();
+    Date validityDate = new Date(now + this.refreshInMs);
+
+    return Jwts.builder()
+        .subject(String.valueOf(studentId))
         .issuedAt(new Date())
         .expiration(validityDate)
         .signWith(key, SIG.HS256)
