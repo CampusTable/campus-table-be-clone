@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import shop.campustable.campustablebeclone.domain.auth.dto.TokenResponse;
 import shop.campustable.campustablebeclone.domain.user.dto.UserRequest;
 import shop.campustable.campustablebeclone.domain.user.dto.UserResponse;
 import shop.campustable.campustablebeclone.domain.user.dto.UserUpdateRequest;
@@ -27,8 +28,8 @@ public class UserController {
   private final UserService userService;
 
   @PostMapping("/login")
-  public ResponseEntity<UserResponse> login(@RequestBody UserRequest request) {
-      UserResponse response= userService.createUser(request);
+  public ResponseEntity<TokenResponse> login(@RequestBody UserRequest request) {
+      TokenResponse response= userService.login(request);
       return ResponseEntity.ok(response);
   }
 
