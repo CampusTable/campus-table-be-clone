@@ -27,37 +27,7 @@ public class UserService {
   private final JwtTokenProvider jwtTokenProvider;
   private final RefreshTokenRepository refreshTokenRepository;
 
-  public TokenResponse login(UserRequest request) {
 
-    SejongMemberInfo sejongMemberInfo = sejongPortalLoginService.getMemberAuthInfos(
-        String.valueOf(request.getStudentId()),
-        request.getPassword()
-    );
-
-    User user = userRepository.findByStudentId(request.getStudentId())
-        .orElseGet(() -> userRepository.save(User.builder()
-            .studentId(request.getStudentId())
-            .password(request.getPassword())
-            .role(UserRole.USER)
-            .name(sejongMemberInfo.getName())
-            .build()));
-
-    String accessToken = jwtTokenProvider.createAccessToken(user.getStudentId(), user.getRole().name());
-    String refreshToken = jwtTokenProvider.createRefreshToken(user.getStudentId());
-
-    refreshTokenRepository.findById(user.getStudentId())
-        .ifPresentOrElse(token -> token.updateToken(refreshToken),
-            () -> refreshTokenRepository.save(RefreshToken.builder()
-                .studentId(user.getStudentId())
-                .token(refreshToken)
-                .build())
-        );
-
-    return TokenResponse.builder()
-        .accessToken(accessToken)
-        .refreshToken(refreshToken)
-        .build();
-  }
 
   public List<UserResponse> getAllUsers() {
     List<User> users = userRepository.findAll();

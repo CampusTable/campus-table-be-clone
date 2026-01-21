@@ -27,13 +27,15 @@ public class SecurityConfig {
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/user/login").permitAll()
+            .requestMatchers("/api/auth/**").permitAll()
             .requestMatchers(
                 "/swagger-ui.html",
                 "/v3/api-docs/**",
                 "/docs/swagger-ui/**",
                 "/swagger-ui/**"
             ).permitAll()
+            .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+            .requestMatchers("/api/user/**").hasAnyAuthority("USER", "ADMIN")
             .requestMatchers("/error").permitAll()
             .anyRequest().authenticated())
 
