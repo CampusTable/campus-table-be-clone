@@ -18,9 +18,16 @@ public class CustomUserDetailService implements UserDetailsService {
   @Override
   public UserDetails loadUserByUsername(String studentIdString) throws UsernameNotFoundException{
 
-    return userRepository.findByStudentId(Long.parseLong(studentIdString))
+    Long studentId;
+    try{
+      studentId = Long.parseLong(studentIdString);
+    } catch (NumberFormatException e){
+      throw new UsernameNotFoundException("잘못된 학번 형식입니다: "+ studentIdString);
+    }
+
+    return userRepository.findByStudentId(studentId)
         .map(CustomUserDetails::new)
-        .orElseThrow(() -> new UsernameNotFoundException("해당학번을 찾을수 없습니다."+studentIdString));
+        .orElseThrow(()->new UsernameNotFoundException("해당학번을 찾을수 없습니다.: "+studentIdString));
 
   }
 

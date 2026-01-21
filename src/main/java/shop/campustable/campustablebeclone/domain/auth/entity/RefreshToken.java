@@ -26,8 +26,9 @@ public class RefreshToken {
   @Column(name = "expiration")
   private Long expiration;
 
-  public void updateToken(String newtoken){
+  public void updateToken(String newtoken, Long newexpiration) {
     this.token = newtoken;
+    this.expiration = newexpiration;
   }
 
 }

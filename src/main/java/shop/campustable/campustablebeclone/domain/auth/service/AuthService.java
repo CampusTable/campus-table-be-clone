@@ -41,8 +41,10 @@ public class AuthService {
     String accessToken = jwtTokenProvider.createAccessToken(request.getStudentId(), user.getRole().name());
     String refreshToken = jwtTokenProvider.createRefreshToken(request.getStudentId());
 
+    Long newExpiration = System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 14;
+
     refreshTokenRepository.findById(user.getStudentId())
-        .ifPresentOrElse(token -> token.updateToken(refreshToken),
+        .ifPresentOrElse(token -> token.updateToken(refreshToken,newExpiration),
             () -> refreshTokenRepository.save(RefreshToken.builder()
                 .studentId(user.getStudentId())
                 .token(refreshToken)
@@ -78,7 +80,9 @@ public class AuthService {
     String newAccessToken = jwtTokenProvider.createAccessToken(user.getStudentId(), user.getRole().name());
     String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getStudentId());
 
-    storedToken.updateToken(newRefreshToken);
+    Long newExpiration = System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 14;
+
+    storedToken.updateToken(newRefreshToken,newExpiration);
 
     return TokenResponse.builder()
         .accessToken(newAccessToken)
