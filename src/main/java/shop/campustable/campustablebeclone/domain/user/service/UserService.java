@@ -23,9 +23,6 @@ import shop.campustable.campustablebeclone.domain.user.repository.UserRepository
 public class UserService {
 
   private final UserRepository userRepository;
-  private final SejongPortalLoginService sejongPortalLoginService;
-  private final JwtTokenProvider jwtTokenProvider;
-  private final RefreshTokenRepository refreshTokenRepository;
 
 
 

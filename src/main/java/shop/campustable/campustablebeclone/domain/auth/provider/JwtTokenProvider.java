@@ -33,7 +33,7 @@ public class JwtTokenProvider {
 
   }
 
-  public String createAccessToken(Long studentId, String role){
+  public String createAccessToken(Long studentId, String role) {
     long now = (new Date()).getTime();
     Date validityDate = new Date(now + this.expirationInMs);
 
@@ -46,7 +46,7 @@ public class JwtTokenProvider {
         .compact();
   }
 
-  public String createRefreshToken(Long studentId){
+  public String createRefreshToken(Long studentId) {
     long now = (new Date()).getTime();
     Date validityDate = new Date(now + this.refreshInMs);
 
@@ -58,7 +58,7 @@ public class JwtTokenProvider {
         .compact();
   }
 
-  public Authentication getAuthentication(String token){
+  public Authentication getAuthentication(String token) {
 
     Long studentId = getStudentId(token);
 
@@ -68,7 +68,7 @@ public class JwtTokenProvider {
 
   }
 
-  public Long getStudentId(String token){
+  public Long getStudentId(String token) {
     String id = Jwts.parser()
         .verifyWith(key)
         .build()
@@ -79,18 +79,23 @@ public class JwtTokenProvider {
     return Long.valueOf(id);
   }
 
-  public boolean validateToken(String token){
-      try{
-        Jwts.parser()
-            .verifyWith(key)
-            .build()
-            .parseClaimsJws(token);
-        return true;
-      }
-      catch(ExpiredJwtException e){
-        log.info("유효하지 않은 토큰입니다: {}", e.getMessage());
-      }
-      return false;
+  public boolean validateToken(String token) {
+    try {
+      Jwts.parser()
+          .verifyWith(key)
+          .build()
+          .parseClaimsJws(token);
+      return true;
+    } catch (ExpiredJwtException e) {
+      log.warn("만료된 토큰입니다: {}", e.getMessage());
+    } catch (SecurityException | MalformedJwtException e) {
+      log.warn("잘못된 JWT 서명입니다: {}", e.getMessage());
+    } catch (UnsupportedJwtException e) {
+      log.warn("지원되지 않는 JWT 토큰입니다: {}", e.getMessage());
+    } catch (IllegalArgumentException e) {
+      log.warn("JWT 토큰이 잘못되었습니다: {}", e.getMessage());
+    }
+    return false;
   }
 
 }

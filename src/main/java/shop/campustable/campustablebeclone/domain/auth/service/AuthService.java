@@ -38,7 +38,7 @@ public class AuthService {
             .name(sejongMemberInfo.getName())
             .build()));
 
-    String accessToken = jwtTokenProvider.createAccessToken(request.getStudentId(),  request.getPassword());
+    String accessToken = jwtTokenProvider.createAccessToken(request.getStudentId(), user.getRole().name());
     String refreshToken = jwtTokenProvider.createRefreshToken(request.getStudentId());
 
     refreshTokenRepository.findById(user.getStudentId())

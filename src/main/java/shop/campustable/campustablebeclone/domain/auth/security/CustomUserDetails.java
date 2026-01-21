@@ -20,7 +20,7 @@ public class CustomUserDetails implements UserDetails {
 
   @Override
   public String getUsername() {
-    return String.valueOf(user.getUserId());
+    return String.valueOf(user.getStudentId());
   }
 
   @Override
