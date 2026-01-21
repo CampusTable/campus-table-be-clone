@@ -16,7 +16,7 @@ import shop.campustable.campustablebeclone.domain.user.dto.UserUpdateRequest;
 import shop.campustable.campustablebeclone.domain.user.service.UserService;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -41,7 +41,7 @@ public class UserController {
     return ResponseEntity.ok(user);
   }
 
-  @DeleteMapping("/{id}")
+  @DeleteMapping("/user/{id}")
   public ResponseEntity<Void> deleteUser(@PathVariable Long id){
     userService.deleteUser(id);
     return ResponseEntity.ok().build();
