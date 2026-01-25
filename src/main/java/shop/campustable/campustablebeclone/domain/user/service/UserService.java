@@ -5,6 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.campustable.campustablebeclone.domain.auth.dto.SejongMemberInfo;
+import shop.campustable.campustablebeclone.domain.auth.dto.TokenResponse;
+import shop.campustable.campustablebeclone.domain.auth.entity.RefreshToken;
+import shop.campustable.campustablebeclone.domain.auth.provider.JwtTokenProvider;
+import shop.campustable.campustablebeclone.domain.auth.repository.RefreshTokenRepository;
 import shop.campustable.campustablebeclone.domain.auth.service.SejongPortalLoginService;
 import shop.campustable.campustablebeclone.domain.user.dto.UserRequest;
 import shop.campustable.campustablebeclone.domain.user.dto.UserResponse;
@@ -19,27 +23,8 @@ import shop.campustable.campustablebeclone.domain.user.repository.UserRepository
 public class UserService {
 
   private final UserRepository userRepository;
-  private final SejongPortalLoginService sejongPortalLoginService;
 
-  public UserResponse createUser(UserRequest request) {
 
-    SejongMemberInfo sejongMemberInfo = sejongPortalLoginService.getMemberAuthInfos(
-        String.valueOf(request.getStudentId()),
-        request.getPassword()
-    );
-
-    User user = userRepository.findByStudentId(request.getStudentId())
-        .orElseGet(()->User.builder()
-        .studentId(request.getStudentId())
-        .password(request.getPassword())
-        .role(request.getRole() != null ? request.getRole() : UserRole.USER)
-        .name(sejongMemberInfo.getName())
-        .build());
-
-  userRepository.save(user);
-
-  return new UserResponse(user);
-  }
 
   public List<UserResponse> getAllUsers() {
     List<User> users = userRepository.findAll();
@@ -49,21 +34,22 @@ public class UserService {
   }
 
   public UserResponse getUserById(Long id) {
-    User user = userRepository.findById(id).orElseThrow(()->new IllegalArgumentException("User not found"));
+    User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
     UserResponse userResponse = new UserResponse(user);
     return userResponse;
   }
 
-  public UserResponse updateUser(UserUpdateRequest request,Long id) {
-    User user = userRepository.findById(id).orElseThrow(()->new IllegalArgumentException("User not found"));
-    if(request.getRole()!=null)
+  public UserResponse updateUser(UserUpdateRequest request, Long id) {
+    User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
+    if (request.getRole() != null) {
       user.setRole(request.getRole());
+    }
     UserResponse userResponse = new UserResponse(user);
     return userResponse;
   }
 
   public void deleteUser(Long id) {
-    User user = userRepository.findById(id).orElseThrow(()->new IllegalArgumentException("User not found"));
+    User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
     userRepository.delete(user);
   }
 
