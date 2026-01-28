@@ -25,6 +25,17 @@ public class SecurityConfig {
   private final JwtTokenProvider jwtTokenProvider;
   private final ObjectMapper objectMapper;
 
+  /**
+   * Configure the application's HTTP security and produce a SecurityFilterChain.
+   *
+   * Configures CSRF as disabled, enforces stateless session management, installs custom
+   * authentication and access-denied handlers, applies authorization rules for authentication,
+   * admin, user and documentation endpoints, and registers the JWT authentication filter
+   * before the UsernamePasswordAuthenticationFilter.
+   *
+   * @param http the HttpSecurity to configure
+   * @return the built SecurityFilterChain
+   */
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 

@@ -20,6 +20,14 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
   private final ObjectMapper objectMapper;
 
+  /**
+   * Handles unauthenticated requests by logging the event and writing a JSON error response indicating an invalid JWT.
+   *
+   * @param request the incoming HTTP request
+   * @param response the HTTP response to write the error to
+   * @param authException the authentication exception that triggered this entry point
+   * @throws IOException if writing the error response fails
+   */
   @Override
   public void commence(HttpServletRequest request, HttpServletResponse response,
       AuthenticationException authException) throws IOException{
@@ -28,6 +36,17 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     writeErrorResponse(response, ErrorCode.JWT_INVALID);
   }
 
+  /**
+   * Write a JSON error payload to the given HTTP response using the provided error code.
+   *
+   * The response status, content type, and character encoding are set from the error code
+   * and then an ErrorResponse (containing the error code and its message) is serialized
+   * to JSON and written to the response body.
+   *
+   * @param response the HTTP response to populate
+   * @param errorCode the error code whose status and message will be used in the response
+   * @throws IOException if an I/O error occurs while writing the response body
+   */
   private void writeErrorResponse(HttpServletResponse response, ErrorCode errorCode) throws IOException {
     response.setStatus(errorCode.getStatus().value());
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
