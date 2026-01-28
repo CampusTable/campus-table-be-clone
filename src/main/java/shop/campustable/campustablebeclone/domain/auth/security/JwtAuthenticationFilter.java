@@ -26,7 +26,6 @@ import shop.campustable.campustablebeclone.global.exception.ErrorCode;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtTokenProvider jwtTokenProvider;
-  private final CustomUserDetailService userDetailsService;
   private final ObjectMapper objectMapper;
 
   @Override

@@ -5,12 +5,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 import shop.campustable.campustablebeclone.global.exception.ErrorCode;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
@@ -21,6 +23,8 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
   public void handle(HttpServletRequest request,
       HttpServletResponse response,
       AccessDeniedException accessDeniedException)throws IOException{
+
+    log.warn("권한 없는 접근 감지. Handler 실행: {}", accessDeniedException.getMessage());
 
     writeErrorResponse(response, ErrorCode.ACCESS_DENIED);
   }
