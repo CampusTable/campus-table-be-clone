@@ -11,6 +11,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 import shop.campustable.campustablebeclone.global.exception.ErrorCode;
+import shop.campustable.campustablebeclone.global.exception.ErrorResponse;
 
 @Slf4j
 @Component
@@ -34,11 +35,14 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
     response.setCharacterEncoding("UTF-8");
 
-    ErrorResponse errorResponse = new ErrorResponse(errorCode.name(), errorCode.getMessage());
-    String json = objectMapper.writeValueAsString(errorResponse);
-    response.getWriter().write(json);
-  }
+    ErrorResponse errorJson = ErrorResponse.builder()
+        .errorCode(errorCode)
+        .errormessage(errorCode.getMessage())
+        .build();
 
-  private record ErrorResponse(String errorCode, String errorMessage) {}
+    response.getWriter().write(objectMapper.writeValueAsString(errorJson));
+    response.getWriter().flush();
+
+  }
 
 }
