@@ -1,5 +1,8 @@
 package shop.campustable.campustablebeclone.domain.auth.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -7,16 +10,23 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import shop.campustable.campustablebeclone.domain.auth.provider.JwtTokenProvider;
+import shop.campustable.campustablebeclone.domain.auth.service.CustomUserDetailService;
+import shop.campustable.campustablebeclone.global.exception.CustomException;
+import shop.campustable.campustablebeclone.global.exception.ErrorCode;
+import shop.campustable.campustablebeclone.global.exception.ErrorResponse;
 
 @Slf4j
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtTokenProvider jwtTokenProvider;
+  private final ObjectMapper objectMapper;
 
   @Override
   protected void doFilterInternal(
@@ -27,9 +37,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     String token = resolveToken(request);
 
-    if(token != null && jwtTokenProvider.validateToken(token)) {
-      Authentication authentication = jwtTokenProvider.getAuthentication(token);
-      SecurityContextHolder.getContext().setAuthentication(authentication);
+    if(token != null) {
+      try {
+        jwtTokenProvider.validateToken(token);
+
+        Authentication authentication = jwtTokenProvider.getAuthentication(token);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+      } catch (ExpiredJwtException e) {
+        writeErrorResponse(response, ErrorCode.ACCESS_TOKEN_EXPIRED);
+        return;
+      }catch(JwtException | CustomException e) {
+        writeErrorResponse(response,ErrorCode.JWT_INVALID);
+        return;
+      }
     }
 
     filterChain.doFilter(request, response);
@@ -42,6 +62,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       return bearerToken.substring(7);
     }
     return null;
+  }
+
+  private void writeErrorResponse(HttpServletResponse response, ErrorCode errorCode) throws IOException {
+    response.setStatus(errorCode.getStatus().value());
+    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+    response.setCharacterEncoding("UTF-8");
+
+    ErrorResponse errorJson = ErrorResponse.builder()
+        .errorCode(errorCode)
+        .errormessage(errorCode.getMessage())
+        .build();
+
+    response.getWriter().write(objectMapper.writeValueAsString(errorJson));
+    response.getWriter().flush();
+
   }
 
 }
