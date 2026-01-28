@@ -33,7 +33,6 @@ public class AuthService {
     User user = userRepository.findByStudentId(request.getStudentId())
         .orElseGet(() -> userRepository.save(User.builder()
             .studentId(request.getStudentId())
-            .password(request.getPassword())
             .role(UserRole.USER)
             .name(sejongMemberInfo.getName())
             .build()));
