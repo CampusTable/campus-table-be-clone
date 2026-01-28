@@ -17,18 +17,19 @@ public class SecurityUtil {
   public static Long getCurrentUserId(){
     final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-    if(authentication ==null || authentication.getName() == null ||authentication.getName().isBlank()){
+    if(authentication == null || authentication.getName() == null ||authentication.getName().isBlank()){
       log.error("Security Context에 인증 정보가 없습니다.");
       throw new CustomException(ErrorCode.USER_NOT_FOUND);
     }
 
-    try{
-      CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+    Object principal = authentication.getPrincipal();
+
+    if(principal instanceof CustomUserDetails customUserDetails){
       return customUserDetails.getUser().getUserId();
-    }catch(ClassCastException e){
-      log.error("인증 정보 타입이 유효하지 않습니다.");
-      throw new CustomException(ErrorCode.JWT_INVALID);
     }
+
+    log.error("인증 정보 타입이 유효하지 않습니다.");
+    throw new CustomException(ErrorCode.JWT_INVALID);
   }
 
 }

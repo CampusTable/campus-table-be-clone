@@ -19,9 +19,9 @@ import shop.campustable.campustablebeclone.domain.auth.provider.JwtTokenProvider
 import shop.campustable.campustablebeclone.domain.auth.service.CustomUserDetailService;
 import shop.campustable.campustablebeclone.global.exception.CustomException;
 import shop.campustable.campustablebeclone.global.exception.ErrorCode;
+import shop.campustable.campustablebeclone.global.exception.ErrorResponse;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -69,15 +69,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
     response.setCharacterEncoding("UTF-8");
 
-    // 규격화된 에러 객체 생성 (기존 프로젝트의 구조 참고)
-    ErrorResponse errorResponse = new ErrorResponse(errorCode.name(), errorCode.getMessage());
+    ErrorResponse errorJson = ErrorResponse.builder()
+        .errorCode(errorCode)
+        .errormessage(errorCode.getMessage())
+        .build();
 
-    // ObjectMapper를 이용해 객체를 JSON 문자열로 변환하여 전송
-    String json = objectMapper.writeValueAsString(errorResponse);
-    response.getWriter().write(json);
+    response.getWriter().write(objectMapper.writeValueAsString(errorJson));
+    response.getWriter().flush();
+
   }
-
-  // 응답용 내부 레코드
-  private record ErrorResponse(String errorCode, String errorMessage) {}
 
 }
