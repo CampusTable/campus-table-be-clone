@@ -2,55 +2,76 @@ package shop.campustable.campustablebeclone.domain.user.service;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import shop.campustable.campustablebeclone.domain.auth.dto.SejongMemberInfo;
-import shop.campustable.campustablebeclone.domain.auth.dto.TokenResponse;
-import shop.campustable.campustablebeclone.domain.auth.entity.RefreshToken;
-import shop.campustable.campustablebeclone.domain.auth.provider.JwtTokenProvider;
 import shop.campustable.campustablebeclone.domain.auth.repository.RefreshTokenRepository;
-import shop.campustable.campustablebeclone.domain.auth.service.SejongPortalLoginService;
-import shop.campustable.campustablebeclone.domain.user.dto.UserRequest;
 import shop.campustable.campustablebeclone.domain.user.dto.UserResponse;
-import shop.campustable.campustablebeclone.domain.user.dto.UserUpdateRequest;
 import shop.campustable.campustablebeclone.domain.user.entity.User;
-import shop.campustable.campustablebeclone.domain.user.entity.UserRole;
 import shop.campustable.campustablebeclone.domain.user.repository.UserRepository;
+import shop.campustable.campustablebeclone.global.common.SecurityUtil;
+import shop.campustable.campustablebeclone.global.exception.CustomException;
+import shop.campustable.campustablebeclone.global.exception.ErrorCode;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class UserService {
 
   private final UserRepository userRepository;
+  private final RefreshTokenRepository refreshTokenRepository;
 
+  @Transactional(readOnly = true)
+  public UserResponse getMyInfo(){
 
+    Long userId = SecurityUtil.getCurrentUserId();
 
-  public List<UserResponse> getAllUsers() {
-    List<User> users = userRepository.findAll();
-
-    return users.stream().map(UserResponse::new).toList();
-
+    return UserResponse.from(findUserById(userId));
   }
 
-  public UserResponse getUserById(Long id) {
-    User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
-    UserResponse userResponse = new UserResponse(user);
-    return userResponse;
-  }
 
-  public UserResponse updateUser(UserUpdateRequest request, Long id) {
-    User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
-    if (request.getRole() != null) {
-      user.setRole(request.getRole());
-    }
-    UserResponse userResponse = new UserResponse(user);
-    return userResponse;
-  }
+  public void deleteMe(){
 
-  public void deleteUser(Long id) {
-    User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
+    Long userId = SecurityUtil.getCurrentUserId();
+    User user = findUserById(userId);
+
+    refreshTokenRepository.deleteByStudentId(user.getStudentId());
+
     userRepository.delete(user);
+    log.info("회원 삭제 완료: 유저 ID {}", userId);
+  }
+
+  @Transactional(readOnly = true)
+  public List<UserResponse> getAllUsers() {
+    return userRepository.findAll()
+        .stream()
+        .map(UserResponse::from)
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public UserResponse getUserById(Long userId) {
+    return UserResponse.from(findUserById(userId));
+  }
+
+
+  public void deleteUser(Long userId) {
+
+    User user = findUserById(userId);
+
+    refreshTokenRepository.deleteByStudentId(user.getStudentId());
+
+    userRepository.delete(user);
+    log.info("관리자에 의한 회원 삭제 완료: 유저 ID {}", userId);
+  }
+
+  private User findUserById(Long userId) {
+    return userRepository.findById(userId)
+        .orElseThrow(()->{
+          log.error("유저를 찾을 수 없습니다. ID: {}", userId);
+          return new CustomException(ErrorCode.USER_NOT_FOUND);
+        });
   }
 
 
