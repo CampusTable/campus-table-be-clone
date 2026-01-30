@@ -26,7 +26,7 @@ public class MenuService {
   public MenuResponse createMenu(MenuRequest request) {
 
     menuRepository.findByMenuName(request.getMenuName())
-        .ifPresent(menu->{
+        .ifPresent(menu -> {
           log.error("createMenu: menu가 이미 존재합니다. menuName: {}", menu.getMenuName());
           throw new CustomException(ErrorCode.MENU_ALREADY_EXISTS);
         });
@@ -37,7 +37,7 @@ public class MenuService {
     return MenuResponse.from(menu);
   }
 
-  public List<MenuResponse> getAllMenus(){
+  public List<MenuResponse> getAllMenus() {
 
     List<Menu> menus = menuRepository.findAll();
     List<MenuResponse> responses = menus.stream()
@@ -47,10 +47,10 @@ public class MenuService {
 
   }
 
-  public MenuResponse getMenuById(Long menuId){
+  public MenuResponse getMenuById(Long menuId) {
 
     Menu menu = menuRepository.findById(menuId)
-        .orElseThrow(()->{
+        .orElseThrow(() -> {
           log.error("해당 메뉴는 존재하지 않습니다. menuId: {}", menuId);
           return new CustomException(ErrorCode.MENU_NOT_FOUND);
         });
@@ -61,16 +61,17 @@ public class MenuService {
   public MenuResponse updateMenu(Long menuId, MenuRequest request) {
 
     Menu menu = menuRepository.findById(menuId)
-        .orElseThrow(()->{
+        .orElseThrow(() -> {
           log.error("해당 메뉴는 존재 하지 않습니다. menuId: {}", menuId);
           return new CustomException(ErrorCode.MENU_NOT_FOUND);
         });
-
-    menuRepository.findByMenuName(request.getMenuName())
-            .ifPresent(existedMenu -> {
-              log.error("이미 존재하는 메뉴 입니다. menuName: {}", existedMenu.getMenuName());
-              throw new CustomException(ErrorCode.MENU_ALREADY_EXISTS);
-            });
+    if (request.getMenuName() != null && !request.getMenuName().isBlank()) {
+      menuRepository.findByMenuName(request.getMenuName())
+          .ifPresent(existedMenu -> {
+            log.error("이미 존재하는 메뉴 입니다. menuName: {}", existedMenu.getMenuName());
+            throw new CustomException(ErrorCode.MENU_ALREADY_EXISTS);
+          });
+    }
 
     menu.update(request);
 

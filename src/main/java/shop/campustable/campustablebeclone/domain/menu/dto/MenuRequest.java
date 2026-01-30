@@ -17,7 +17,9 @@ public class MenuRequest {
 
   public Menu toEntity() {
 
-    Boolean isAvailable = this.stockQuantity > 0 &&  this.available;
+    Boolean isAvailable = this.stockQuantity != null
+                          && this.stockQuantity > 0
+                          && Boolean.TRUE.equals(this.available);
 
     return Menu.builder()
         .menuName(menuName)

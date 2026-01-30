@@ -33,6 +33,7 @@ public interface MenuControllerDocs {
   )
   @ApiResponses({
       @ApiResponse(responseCode = "201", description = "메뉴 생성 성공"),
+      @ApiResponse(responseCode = "400", description = "요청 값 오류"),
       @ApiResponse(responseCode = "409", description = "메뉴 이름 중복")
   })
   ResponseEntity<MenuResponse> createMenu(@RequestBody MenuRequest request);

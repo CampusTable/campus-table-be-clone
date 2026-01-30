@@ -30,7 +30,7 @@ public enum ErrorCode {
   USER_NOT_FOUND(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다."),
 
   // Menu
-  MENU_ALREADY_EXISTS(HttpStatus.CONFLICT, "해당 식당에 이미 존재하는 메뉴입니다."),
+  MENU_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 등록된 메뉴 이름입니다"),
 
   MENU_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 메뉴를 찾을 수 없습니다.");
 

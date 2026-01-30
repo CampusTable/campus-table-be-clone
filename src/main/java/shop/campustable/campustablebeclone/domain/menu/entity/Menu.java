@@ -51,17 +51,14 @@ public class Menu extends BaseTimeEntity {
     if(request.getPrice() != null && request.getPrice() > 0) {
       this.price = request.getPrice();
     }
-    if(request.getAvailable() !=null) {
-      this.available = request.getAvailable();
+    if(request.getStockQuantity() != null &&  request.getStockQuantity() >=0) {
+      this.stockQuantity = request.getStockQuantity();
     }
-    if(request.getStockQuantity() !=null &&  request.getStockQuantity() >=0) {
-      if(request.getStockQuantity() == 0){
-        this.stockQuantity = 0;
-        this.available = false;
-      }
-      else{
-        this.stockQuantity = request.getStockQuantity();
-      }
+    if(this.getStockQuantity() == 0 ) {
+      this.stockQuantity = null;
+    }
+    else if(request.getAvailable() != null){
+      this.available = request.getAvailable();
     }
   }
 
