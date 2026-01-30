@@ -16,11 +16,14 @@ public class MenuRequest {
   private Integer stockQuantity;
 
   public Menu toEntity() {
+
+    Boolean isAvailable = this.stockQuantity > 0 &&  this.available;
+
     return Menu.builder()
         .menuName(menuName)
         .price(price)
         .menuUrl(null)
-        .available(available)
+        .available(isAvailable)
         .stockQuantity(stockQuantity)
         .build();
   }

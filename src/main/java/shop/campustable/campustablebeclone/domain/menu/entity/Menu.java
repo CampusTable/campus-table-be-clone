@@ -13,6 +13,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import shop.campustable.campustablebeclone.domain.menu.dto.MenuRequest;
+import shop.campustable.campustablebeclone.domain.menu.dto.MenuResponse;
 import shop.campustable.campustablebeclone.global.common.BaseTimeEntity;
 
 @Entity
@@ -42,6 +44,25 @@ public class Menu extends BaseTimeEntity {
   @Column(nullable = false)
   private Integer stockQuantity;
 
-
+  public void update(MenuRequest request) {
+    if(request.getMenuName() != null && !request.getMenuName().isBlank()) {
+      this.menuName = request.getMenuName();
+    }
+    if(request.getPrice() != null && request.getPrice() > 0) {
+      this.price = request.getPrice();
+    }
+    if(request.getAvailable() !=null) {
+      this.available = request.getAvailable();
+    }
+    if(request.getStockQuantity() !=null &&  request.getStockQuantity() >=0) {
+      if(request.getStockQuantity() == 0){
+        this.stockQuantity = 0;
+        this.available = false;
+      }
+      else{
+        this.stockQuantity = request.getStockQuantity();
+      }
+    }
+  }
 
 }
