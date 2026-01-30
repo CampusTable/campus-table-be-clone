@@ -55,7 +55,7 @@ public class Menu extends BaseTimeEntity {
       this.stockQuantity = request.getStockQuantity();
     }
     if(this.getStockQuantity() == 0 ) {
-      this.stockQuantity = null;
+      this.available = false;
     }
     else if(request.getAvailable() != null){
       this.available = request.getAvailable();
