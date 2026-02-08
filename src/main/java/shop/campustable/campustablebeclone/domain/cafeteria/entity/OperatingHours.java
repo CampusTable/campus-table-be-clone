@@ -14,10 +14,12 @@ import jakarta.persistence.ManyToOne;
 import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Builder
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class OperatingHours {
@@ -42,5 +44,13 @@ public class OperatingHours {
   @Column(name = "break_close_time")
   @JsonFormat(pattern="HH:mm")
   private LocalTime breaksCloseTime;
+
+  @Column(name = "open_time", nullable = false)
+  @JsonFormat(pattern="HH:mm")
+  private LocalTime openTime;
+
+  @Column(name = "close_time", nullable = false)
+  @JsonFormat(pattern="HH:mm")
+  private LocalTime closeTime;
 
 }

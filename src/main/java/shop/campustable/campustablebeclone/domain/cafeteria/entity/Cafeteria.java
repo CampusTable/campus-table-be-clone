@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,11 +27,12 @@ public class Cafeteria {
   @Column(name = "cafeteria_id")
   private Long id;
 
+  @Builder.Default
   @OneToMany(mappedBy = "cafeteria",
       cascade = CascadeType.REMOVE,
       orphanRemoval = true
   )
-  private List<OperatingHours> operatingHours;
+  private List<OperatingHours> operatingHours = new ArrayList<>();
 
   private String name;
 
