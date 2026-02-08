@@ -13,7 +13,7 @@ env:
   MAIN_PORT: "8090"
   TEST_PORT: "8091"
   APP_EXPOSE_PORT: "8080"
-  MOUNT_DIR: "~/campus-table/server"
+  MOUNT_DIR: "/home/ubuntu/campus-table/server"
   SPRING_PROFILE_MAIN: "prod"
   SPRING_PROFILE_TEST: "prod"
   TIME_ZONE: "Asia/Seoul"
@@ -198,7 +198,6 @@ jobs:
                 --env "TZ=${TIME_ZONE}" \
                 --env "SPRING_PROFILES_ACTIVE=${PROFILE}" \
                 --mount type=bind,source=/etc/localtime,target=/etc/localtime,readonly \
-                --mount type=bind,source="${MOUNT_DIR}",target=/app \
                 "${IMAGE}"
               echo "서비스 ${SERVICE_NAME} 생성 완료"
             fi
