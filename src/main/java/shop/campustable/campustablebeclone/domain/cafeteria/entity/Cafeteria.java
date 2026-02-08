@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import shop.campustable.campustablebeclone.domain.cafeteria.dto.CafeteriaRequest;
 
 @Entity
 @Getter
@@ -37,5 +38,16 @@ public class Cafeteria {
 
   private String address;
 
+  public void update(CafeteriaRequest request) {
+    if(request.getName() != null && !request.getName().isBlank()) {
+      this.name = request.getName();
+    }
+    if(request.getDescription() != null && !request.getDescription().isBlank()) {
+      this.description = request.getDescription();
+    }
+    if(request.getAddress() != null && !request.getAddress().isBlank()) {
+      this.address = request.getAddress();
+    }
+  }
 
 }

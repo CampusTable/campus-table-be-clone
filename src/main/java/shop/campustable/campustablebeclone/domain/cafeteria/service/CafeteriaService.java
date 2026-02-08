@@ -32,7 +32,6 @@ public class CafeteriaService {
     cafeteriaRepository.save(cafeteria);
 
     return CafeteriaResponse.from(cafeteria);
-
   }
 
   public List<CafeteriaResponse> getAllCafeterias() {
@@ -42,7 +41,6 @@ public class CafeteriaService {
     return cafeterias.stream()
         .map(CafeteriaResponse::from)
         .toList();
-
   }
 
   public CafeteriaResponse getCafeteriaById(Long id) {
@@ -54,7 +52,17 @@ public class CafeteriaService {
         });
 
     return CafeteriaResponse.from(cafeteria);
+  }
 
+  public CafeteriaResponse updateCafeteria(CafeteriaRequest request, Long id) {
+    Cafeteria cafeteria = cafeteriaRepository.findById(id)
+        .orElseThrow(()->{
+          log.error("updateCafeteria: 유효하지 않은 cafeteriaId");
+          return new CustomException(ErrorCode.CAFETERIA_NOT_FOUND);
+        });
+
+    cafeteria.update(request);
+    return CafeteriaResponse.from(cafeteria);
   }
 
 }
