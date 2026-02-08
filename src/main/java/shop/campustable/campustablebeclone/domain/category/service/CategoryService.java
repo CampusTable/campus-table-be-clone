@@ -52,7 +52,7 @@ public class CategoryService {
   public List<CategoryResponse> getCategoriesByCafeteriaId(Long cafeteriaId){
     Cafeteria cafeteria = cafeteriaRepository.findById(cafeteriaId)
         .orElseThrow(()->{
-          log.error("getCafeteriaById: 유효하지 않은 cafeteriaId {}", cafeteriaId);
+          log.error("getCategoriesByCafeteriaId: 유효하지 않은 cafeteriaId {}", cafeteriaId);
           return new CustomException(ErrorCode.CAFETERIA_NOT_FOUND);
         });
 
@@ -69,6 +69,12 @@ public class CategoryService {
           log.error("updateCategory: 유효하지 않은 categoryId {}", id);
           return new CustomException(ErrorCode.CATEGORY_NOT_FOUND);
         });
+
+    categoryRepository.findByCafeteriaAndName(category.getCafeteria(),request.getName())
+            .ifPresent(existingCafeteria -> {
+              log.warn("이미 존재하는 category입니다.");
+              throw new CustomException(ErrorCode.CATEGORY_ALREADY_EXISTS);
+            });
 
     category.update(request.getName());
     return  CategoryResponse.from(category);
