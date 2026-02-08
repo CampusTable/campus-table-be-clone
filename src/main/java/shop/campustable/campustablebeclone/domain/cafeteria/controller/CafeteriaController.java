@@ -1,8 +1,11 @@
 package shop.campustable.campustablebeclone.domain.cafeteria.controller;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,9 +24,20 @@ public class CafeteriaController {
 
   @PostMapping("/admin/cafeterias")
   public ResponseEntity<CafeteriaResponse> createCafeteria(@RequestBody CafeteriaRequest request) {
-      CafeteriaResponse cafeteriaResponse = cafeteriaService.createCafeteria(request);
-      return ResponseEntity.status(HttpStatus.CREATED).body(cafeteriaResponse);
+      CafeteriaResponse response = cafeteriaService.createCafeteria(request);
+      return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
+  @GetMapping("/cafeterias")
+  public ResponseEntity<List<CafeteriaResponse>> getAllCafeterias() {
+    List<CafeteriaResponse> response = cafeteriaService.getAllCafeterias();
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
+
+  @GetMapping("/cafeterias/{cafeteria-id}")
+  public ResponseEntity<CafeteriaResponse> getCafeteriaById(@PathVariable("cafeteria-id") Long cafeteriaId) {
+    CafeteriaResponse response = cafeteriaService.getCafeteriaById(cafeteriaId);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
 
 }

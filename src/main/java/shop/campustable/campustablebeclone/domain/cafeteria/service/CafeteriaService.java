@@ -1,5 +1,6 @@
 package shop.campustable.campustablebeclone.domain.cafeteria.service;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,28 @@ public class CafeteriaService {
 
     Cafeteria cafeteria = request.toEntity();
     cafeteriaRepository.save(cafeteria);
+
+    return CafeteriaResponse.from(cafeteria);
+
+  }
+
+  public List<CafeteriaResponse> getAllCafeterias() {
+
+    List<Cafeteria> cafeterias = cafeteriaRepository.findAll();
+
+    return cafeterias.stream()
+        .map(CafeteriaResponse::from)
+        .toList();
+
+  }
+
+  public CafeteriaResponse getCafeteriaById(Long id) {
+
+    Cafeteria cafeteria = cafeteriaRepository.findById(id)
+        .orElseThrow(()->{
+          log.error("getCafeteriaById: 유효하지 않은 cafeteriaId");
+          return new CustomException(ErrorCode.CAFETERIA_NOT_FOUND);
+        });
 
     return CafeteriaResponse.from(cafeteria);
 
