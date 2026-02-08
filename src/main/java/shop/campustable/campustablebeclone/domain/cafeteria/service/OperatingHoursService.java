@@ -3,7 +3,6 @@ package shop.campustable.campustablebeclone.domain.cafeteria.service;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.campustable.campustablebeclone.domain.cafeteria.dto.OperatingHoursRequest;
@@ -24,6 +23,11 @@ public class OperatingHoursService {
   private final CafeteriaRepository cafeteriaRepository;
 
   public void saveOperatingHours(Long cafeteriaId,  List<OperatingHoursRequest> requests) {
+
+    if(requests == null || requests.isEmpty()) {
+      throw new CustomException(ErrorCode.INVALID_OPERATING_HOURS);
+    }
+
     Cafeteria cafeteria = cafeteriaRepository.findById(cafeteriaId)
         .orElseThrow(()->{
           log.error("saveOperatingHours : 유효하지 않은 cafeteriaId {}",cafeteriaId);
