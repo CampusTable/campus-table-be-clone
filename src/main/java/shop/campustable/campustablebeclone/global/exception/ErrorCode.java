@@ -40,7 +40,13 @@ public enum ErrorCode {
   // Menu
   MENU_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 등록된 메뉴 이름입니다"),
 
-  MENU_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 메뉴를 찾을 수 없습니다.");
+  MENU_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 메뉴를 찾을 수 없습니다."),
+
+  //Category
+
+  CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 카테고리를 찾을 수 없습니다."),
+
+  CATEGORY_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 카테고리입니다.");
 
   private final HttpStatus status;
   private final String message;
