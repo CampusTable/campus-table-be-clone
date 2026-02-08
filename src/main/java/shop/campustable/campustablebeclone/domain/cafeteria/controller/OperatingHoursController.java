@@ -1,5 +1,6 @@
 package shop.campustable.campustablebeclone.domain.cafeteria.controller;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class OperatingHoursController {
   @PostMapping("/admin/cafeterias/{cafeteria-id}/operating-hours")
   public ResponseEntity<Void> saveOperatingHours(
       @PathVariable(name = "cafeteria-id")Long cafeteriaId,
-      @RequestBody List<OperatingHoursRequest> requests) {
+      @RequestBody List<@Valid OperatingHoursRequest> requests) {
 
     operatingHoursService.saveOperatingHours(cafeteriaId, requests);
     return ResponseEntity.ok().build();

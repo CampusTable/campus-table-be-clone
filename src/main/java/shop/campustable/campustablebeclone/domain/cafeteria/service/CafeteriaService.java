@@ -46,8 +46,8 @@ public class CafeteriaService {
   public CafeteriaResponse getCafeteriaById(Long id) {
 
     Cafeteria cafeteria = cafeteriaRepository.findById(id)
-        .orElseThrow(()->{
-          log.error("getCafeteriaById: 유효하지 않은 cafeteriaId {}",id);
+        .orElseThrow(() -> {
+          log.error("getCafeteriaById: 유효하지 않은 cafeteriaId {}", id);
           return new CustomException(ErrorCode.CAFETERIA_NOT_FOUND);
         });
 
@@ -56,12 +56,16 @@ public class CafeteriaService {
 
   public CafeteriaResponse updateCafeteria(CafeteriaRequest request, Long id) {
     Cafeteria cafeteria = cafeteriaRepository.findById(id)
-        .orElseThrow(()->{
-          log.error("updateCafeteria: 유효하지 않은 cafeteriaId {}",id);
+        .orElseThrow(() -> {
+          log.error("updateCafeteria: 유효하지 않은 cafeteriaId {}", id);
           return new CustomException(ErrorCode.CAFETERIA_NOT_FOUND);
         });
 
-    cafeteria.update(request);
+    cafeteria.update(
+        request.getName(),
+        request.getDescription(),
+        request.getAddress());
+
     return CafeteriaResponse.from(cafeteria);
   }
 

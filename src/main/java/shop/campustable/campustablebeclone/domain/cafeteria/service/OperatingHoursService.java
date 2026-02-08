@@ -31,6 +31,7 @@ public class OperatingHoursService {
         });
 
     operatingHoursRepository.deleteByCafeteria(cafeteria);
+    operatingHoursRepository.flush();
 
     List<OperatingHours> operatingHoursList = requests.stream()
         .map(request -> request.toEntity(cafeteria))

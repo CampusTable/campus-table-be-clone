@@ -2,6 +2,7 @@
 
   import com.fasterxml.jackson.annotation.JsonFormat;
   import io.swagger.v3.oas.annotations.media.Schema;
+  import jakarta.validation.constraints.NotNull;
   import java.time.LocalTime;
   import lombok.AllArgsConstructor;
   import lombok.Builder;
@@ -17,17 +18,22 @@
   @AllArgsConstructor
   public class OperatingHoursRequest {
 
+    @NotNull
     private DayOfWeekEnum dayOfWeek;
 
+    @NotNull
     @JsonFormat(pattern="HH:mm")
     private LocalTime openTime;
 
+    @NotNull
     @JsonFormat(pattern="HH:mm")
     private LocalTime closeTime;
 
+    @NotNull
     @JsonFormat(pattern="HH:mm")
     private LocalTime breaksStartTime;
 
+    @NotNull
     @JsonFormat(pattern="HH:mm")
     private LocalTime breaksCloseTime;
 
