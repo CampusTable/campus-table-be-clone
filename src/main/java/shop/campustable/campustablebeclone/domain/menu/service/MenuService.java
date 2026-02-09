@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.webmvc.core.service.RequestService;
 import org.springframework.stereotype.Service;
+import shop.campustable.campustablebeclone.domain.category.entity.Category;
+import shop.campustable.campustablebeclone.domain.category.repository.CategoryRepository;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuRequest;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuResponse;
 import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
@@ -21,17 +23,23 @@ import shop.campustable.campustablebeclone.global.exception.ErrorCode;
 public class MenuService {
 
   private final MenuRepository menuRepository;
-  private final RequestService requestService;
+  private final CategoryRepository categoryRepository;
 
-  public MenuResponse createMenu(MenuRequest request) {
+  public MenuResponse createMenu(Long categoryId,MenuRequest request) {
 
-    menuRepository.findByMenuName(request.getMenuName())
+    Category category = categoryRepository.findById(categoryId)
+            .orElseThrow(()->{
+              log.error("createMenu: 유효하지 않은 categoryId {}", categoryId);
+              return  new CustomException(ErrorCode.CATEGORY_NOT_FOUND);
+            });
+
+    menuRepository.findByCategoryAndMenuName(category,request.getMenuName())
         .ifPresent(menu -> {
           log.error("createMenu: menu가 이미 존재합니다. menuName: {}", menu.getMenuName());
           throw new CustomException(ErrorCode.MENU_ALREADY_EXISTS);
         });
 
-    Menu menu = request.toEntity();
+    Menu menu = request.toEntity(category);
     menuRepository.save(menu);
 
     return MenuResponse.from(menu);
@@ -45,6 +53,21 @@ public class MenuService {
         .toList();
     return responses;
 
+  }
+
+  public List<MenuResponse> getMenusByCategory(Long categoryId) {
+
+    Category category = categoryRepository.findById(categoryId)
+        .orElseThrow(()->{
+          log.error("getMenusByCategory: 유효하지 않은 categoryId {}", categoryId);
+          return  new CustomException(ErrorCode.CATEGORY_NOT_FOUND);
+        });
+
+    List<Menu> menus = menuRepository.findByCategory(category);
+
+    return  menus.stream()
+        .map(MenuResponse::from)
+        .toList();
   }
 
   public MenuResponse getMenuById(Long menuId) {
@@ -66,10 +89,12 @@ public class MenuService {
           return new CustomException(ErrorCode.MENU_NOT_FOUND);
         });
     if (request.getMenuName() != null && !request.getMenuName().isBlank()) {
-      menuRepository.findByMenuName(request.getMenuName())
+      menuRepository.findByCategoryAndMenuName(menu.getCategory(),request.getMenuName())
           .ifPresent(existedMenu -> {
-            log.error("이미 존재하는 메뉴 입니다. menuName: {}", existedMenu.getMenuName());
-            throw new CustomException(ErrorCode.MENU_ALREADY_EXISTS);
+            if(!existedMenu.getId().equals(menu.getId())) {
+              log.error("updateMenu: 이미 카테고리에 존재하는 메뉴 입니다. menuName: {}", existedMenu.getMenuName());
+              throw new CustomException(ErrorCode.MENU_ALREADY_EXISTS);
+            }
           });
     }
 

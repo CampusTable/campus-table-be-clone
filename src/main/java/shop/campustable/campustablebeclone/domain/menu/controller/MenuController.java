@@ -23,10 +23,12 @@ public class MenuController implements MenuControllerDocs {
   private final MenuService menuService;
 
   @Override
-  @PostMapping("/admin/menus")
-  public ResponseEntity<MenuResponse> createMenu(@RequestBody MenuRequest request) {
+  @PostMapping("/admin/categories/{category-id}/menus")
+  public ResponseEntity<MenuResponse> createMenu(
+      @PathVariable(name = "category-id") Long categoryId,
+      @RequestBody MenuRequest request) {
 
-    MenuResponse response = menuService.createMenu(request);
+    MenuResponse response = menuService.createMenu(categoryId, request);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
   }
@@ -38,6 +40,13 @@ public class MenuController implements MenuControllerDocs {
     List<MenuResponse> responses = menuService.getAllMenus();
     return ResponseEntity.ok(responses);
 
+  }
+
+  @Override
+  @GetMapping("/categories/{category-id}/menus")
+  public ResponseEntity<List<MenuResponse>> getMenusByCategory(@PathVariable(name = "category-id")Long categoryId) {
+    List<MenuResponse> responses = menuService.getMenusByCategory(categoryId);
+    return ResponseEntity.ok(responses);
   }
 
   @Override

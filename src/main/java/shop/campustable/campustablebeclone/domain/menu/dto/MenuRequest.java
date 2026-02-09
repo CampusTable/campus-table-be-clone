@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import shop.campustable.campustablebeclone.domain.category.entity.Category;
 import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
 
 @Getter
@@ -15,7 +16,7 @@ public class MenuRequest {
   private Boolean available;
   private Integer stockQuantity;
 
-  public Menu toEntity() {
+  public Menu toEntity(Category category) {
 
     Boolean isAvailable = this.stockQuantity != null
                           && this.stockQuantity > 0
@@ -23,6 +24,7 @@ public class MenuRequest {
 
     return Menu.builder()
         .menuName(menuName)
+        .category(category)
         .price(price)
         .menuUrl(null)
         .available(isAvailable)
