@@ -123,7 +123,7 @@ public interface MenuControllerDocs {
         - 존재하지 않는 카테고리 ID로 요청 시 오류가 발생합니다.
         
         ### 예외 처리
-        - `CATEGORY_NOT_FOUND` (404 BAD_REQUEST): 카테고리를 찾을 수 없습니다.
+        - `CATEGORY_NOT_FOUND` (404 NOT_FOUND): 카테고리를 찾을 수 없습니다.
         """
   )
   @Parameter(name = "category-id", description = "카테고리 고유 식별자", example = "1")
@@ -194,8 +194,8 @@ public interface MenuControllerDocs {
         - `menuName`이 null 또는 공백일 경우 중복 검사를 수행하지 않습니다.
         
         ### 예외 처리
-        - `MENU_NOT_FOUND` (400 BAD_REQUEST): 메뉴를 찾을 수 없습니다.
-        - `MENU_ALREADY_EXISTS` (400 BAD_REQUEST): 이미 존재하는 메뉴입니다.
+        - `MENU_NOT_FOUND` (404 NOT_FOUND): 메뉴를 찾을 수 없습니다.
+        - `MENU_ALREADY_EXISTS` (409 CONFLICT): 이미 존재하는 메뉴입니다.
         """
   )
 

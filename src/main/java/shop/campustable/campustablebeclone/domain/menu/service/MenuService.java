@@ -91,8 +91,10 @@ public class MenuService {
     if (request.getMenuName() != null && !request.getMenuName().isBlank()) {
       menuRepository.findByCategoryAndMenuName(menu.getCategory(),request.getMenuName())
           .ifPresent(existedMenu -> {
-            log.error("updateMenu: 이미 카테고리에 존재하는 메뉴 입니다. menuName: {}", existedMenu.getMenuName());
-            throw new CustomException(ErrorCode.MENU_ALREADY_EXISTS);
+            if(!existedMenu.getId().equals(menu.getId())) {
+              log.error("updateMenu: 이미 카테고리에 존재하는 메뉴 입니다. menuName: {}", existedMenu.getMenuName());
+              throw new CustomException(ErrorCode.MENU_ALREADY_EXISTS);
+            }
           });
     }
 
