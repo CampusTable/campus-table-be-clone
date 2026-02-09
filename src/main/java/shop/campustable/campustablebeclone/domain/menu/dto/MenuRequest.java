@@ -4,10 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 import shop.campustable.campustablebeclone.domain.category.entity.Category;
 import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class MenuRequest {
 
@@ -15,6 +18,7 @@ public class MenuRequest {
   private Integer price;
   private Boolean available;
   private Integer stockQuantity;
+  private MultipartFile image;
 
   public Menu toEntity(Category category) {
 

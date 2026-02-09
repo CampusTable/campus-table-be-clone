@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.webmvc.core.service.RequestService;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import shop.campustable.campustablebeclone.domain.category.entity.Category;
 import shop.campustable.campustablebeclone.domain.category.repository.CategoryRepository;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuRequest;
@@ -15,6 +16,7 @@ import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
 import shop.campustable.campustablebeclone.domain.menu.repository.MenuRepository;
 import shop.campustable.campustablebeclone.global.exception.CustomException;
 import shop.campustable.campustablebeclone.global.exception.ErrorCode;
+import shop.campustable.campustablebeclone.global.s3.service.S3Service;
 
 @Service
 @Slf4j
@@ -24,8 +26,9 @@ public class MenuService {
 
   private final MenuRepository menuRepository;
   private final CategoryRepository categoryRepository;
+  private final S3Service s3Service;
 
-  public MenuResponse createMenu(Long categoryId,MenuRequest request) {
+  public MenuResponse createMenu(Long categoryId,MenuRequest request, MultipartFile image) {
 
     Category category = categoryRepository.findById(categoryId)
             .orElseThrow(()->{
@@ -39,8 +42,38 @@ public class MenuService {
           throw new CustomException(ErrorCode.MENU_ALREADY_EXISTS);
         });
 
+    log.info("요청 데이터 확인 - name: {}, price: {}", request.getMenuName(), request.getPrice());
+
+
     Menu menu = request.toEntity(category);
-    menuRepository.save(menu);
+    Menu savedMenu = menuRepository.save(menu);
+
+
+    if(image!=null && !image.isEmpty()) {
+      return uploadMenuImage(savedMenu.getId(), image);
+    }
+
+    return MenuResponse.from(menu);
+  }
+
+  public MenuResponse uploadMenuImage(Long menuId, MultipartFile image) {
+
+    Menu menu = menuRepository.findById(menuId)
+        .orElseThrow(()->{
+          log.error("uploadMenuImage: 해당 메뉴는 존재하지 않습니다. menuId: {}", menuId);
+          return  new CustomException(ErrorCode.MENU_NOT_FOUND);
+        });
+
+    if (image == null || image.isEmpty()) {
+      log.error("uploadMenuImage: 이미지 파일은 필수입니다.");
+      throw new CustomException(ErrorCode.INVALID_FILE_REQUEST);
+    }
+
+    String cafeteriaName = menu.getCategory().getCafeteria().getName();
+    String dirName = "menu/" + cafeteriaName;
+
+    String newUrl = s3Service.uploadFile(image, dirName);
+    menu.setMenuUrl(newUrl);
 
     return MenuResponse.from(menu);
   }
@@ -74,7 +107,7 @@ public class MenuService {
 
     Menu menu = menuRepository.findById(menuId)
         .orElseThrow(() -> {
-          log.error("해당 메뉴는 존재하지 않습니다. menuId: {}", menuId);
+          log.error("getMenuById: 해당 메뉴는 존재하지 않습니다. menuId: {}", menuId);
           return new CustomException(ErrorCode.MENU_NOT_FOUND);
         });
 
@@ -85,7 +118,7 @@ public class MenuService {
 
     Menu menu = menuRepository.findById(menuId)
         .orElseThrow(() -> {
-          log.error("해당 메뉴는 존재 하지 않습니다. menuId: {}", menuId);
+          log.error("updateMenu: 해당 메뉴는 존재 하지 않습니다. menuId: {}", menuId);
           return new CustomException(ErrorCode.MENU_NOT_FOUND);
         });
     if (request.getMenuName() != null && !request.getMenuName().isBlank()) {

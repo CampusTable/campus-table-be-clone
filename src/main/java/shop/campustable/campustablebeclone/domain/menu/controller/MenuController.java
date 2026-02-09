@@ -3,8 +3,10 @@ package shop.campustable.campustablebeclone.domain.menu.controller;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,12 +25,12 @@ public class MenuController implements MenuControllerDocs {
   private final MenuService menuService;
 
   @Override
-  @PostMapping("/admin/categories/{category-id}/menus")
+  @PostMapping(value = "/admin/categories/{category-id}/menus", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<MenuResponse> createMenu(
       @PathVariable(name = "category-id") Long categoryId,
-      @RequestBody MenuRequest request) {
+      @ModelAttribute MenuRequest request) {
 
-    MenuResponse response = menuService.createMenu(categoryId, request);
+    MenuResponse response = menuService.createMenu(categoryId, request, request.getImage());
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
   }
