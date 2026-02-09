@@ -2,9 +2,12 @@ package shop.campustable.campustablebeclone.domain.menu.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
@@ -13,6 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import shop.campustable.campustablebeclone.domain.category.entity.Category;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuRequest;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuResponse;
 import shop.campustable.campustablebeclone.global.common.BaseTimeEntity;
@@ -28,6 +32,10 @@ public class Menu extends BaseTimeEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "menu_id")
   private Long id;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "category_id",nullable = false)
+  private Category category;
 
   @Column(nullable = false)
   private String menuName;

@@ -14,6 +14,7 @@ import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
 public class MenuResponse {
 
   private Long menuId;
+  private Long  categoryId;
   private String menuName;
   private Integer price;
   private String menuUrl;
@@ -25,6 +26,7 @@ public class MenuResponse {
   public static MenuResponse from(Menu menu) {
     return MenuResponse.builder()
         .menuId(menu.getId())
+        .categoryId(menu.getCategory().getId())
         .menuName(menu.getMenuName())
         .price(menu.getPrice())
         .menuUrl(menu.getMenuUrl())

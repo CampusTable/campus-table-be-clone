@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuRequest;
@@ -18,80 +19,190 @@ public interface MenuControllerDocs {
 
 
   @Operation(
-      summary = "메뉴 생성 (Admin)",
+      summary = "메뉴 생성",
       description = """
-            관리자 권한으로 새로운 메뉴를 시스템에 등록합니다.
-            
-            ### 유의 사항
-            - **중복 체크**: 동일한 `menuName`이 이미 존재할 경우 `409 Conflict`를 반환합니다.
-            - **재고 설정**: 초기 재고가 0인 경우 `available` 상태는 자동으로 `false`로 설정될 수 있습니다.
-            
-            ### 주요 오류 코드
-            - **MENU_ALREADY_EXISTS (409)**: 이미 등록된 메뉴 이름입니다.
-            - **INVALID_INPUT (400)**: 가격이 0 이하이거나 필수 값이 누락되었습니다.
-            """
+        ### 요청 파라미터
+        - `category-id` (Long, required, PathVariable): 메뉴를 생성할 카테고리 ID
+        
+        ### 요청 바디
+        - `menuName` (String): 메뉴 이름
+        - `price` (Integer): 메뉴 가격
+        - `available` (Boolean): 메뉴 판매 가능 여부
+        - `stockQuantity` (Integer): 메뉴 재고 수량
+        
+        ### 응답 데이터
+        - `menuId` (Long): 생성된 메뉴 ID
+        - `categoryId` (Long): 카테고리 ID
+        - `menuName` (String): 메뉴 이름
+        - `price` (Integer): 메뉴 가격
+        - `menuUrl` (String): 메뉴 이미지 URL (현재 null)
+        - `available` (Boolean): 판매 가능 여부  
+        - `stockQuantity` (Integer): 재고 수량
+        - `createdAt` (LocalDateTime): 생성 일시
+        - `updatedAt` (LocalDateTime): 수정 일시
+        
+        ### 사용 방법
+        1. 관리자 권한으로 카테고리 ID를 PathVariable로 전달하여 요청합니다.
+        2. 요청 바디에 메뉴 이름, 가격, 판매 여부, 재고 수량을 포함하여 전송합니다.
+        3. 메뉴가 정상적으로 생성되면 생성된 메뉴 정보를 반환합니다.
+        
+        ### 유의 사항
+        - 동일한 카테고리 내에 동일한 `menuName`이 존재할 경우 메뉴 생성이 불가능합니다.
+        - `available` 값이 true이더라도 `stockQuantity`가 0 이하이면 판매 불가 상태로 저장됩니다.
+        
+        ### 예외 처리
+        - `CATEGORY_NOT_FOUND` (404 BAD_REQUEST): 카테고리를 찾을 수 없습니다.
+        - `MENU_ALREADY_EXISTS` (409 BAD_REQUEST): 이미 존재하는 메뉴입니다.
+        """
   )
+
   @ApiResponses({
       @ApiResponse(responseCode = "201", description = "메뉴 생성 성공"),
-      @ApiResponse(responseCode = "400", description = "요청 값 오류"),
-      @ApiResponse(responseCode = "409", description = "메뉴 이름 중복")
+      @ApiResponse(responseCode = "404", description = "CATEGORY_NOT_FOUND - 해당 카테고리를 찾을 수 없습니다."),
+      @ApiResponse(responseCode = "409", description = "MENU_ALREADY_EXISTS - 이미 등록된 메뉴 이름입니다.")
   })
-  ResponseEntity<MenuResponse> createMenu(@RequestBody MenuRequest request);
+  @Parameter(name = "category-id", description = "카테고리 고유 식별자", example = "1")
+  ResponseEntity<MenuResponse> createMenu(
+      @PathVariable(name = "category-id") Long categoryId,
+      @RequestBody MenuRequest request);
 
   @Operation(
       summary = "전체 메뉴 조회",
       description = """
-            현재 시스템에 등록된 모든 메뉴 리스트를 조회합니다.
-            
-            ### 반환 정보
-            - 메뉴 ID, 이름, 가격, 이미지 URL, 판매 가능 여부, 재고 수량을 포함한 리스트를 반환합니다.
-            - 별도의 페이징 처리가 없는 전체 조회 API입니다.
-            """
+        ### 요청 파라미터
+        - 없음
+        
+        ### 응답 데이터
+        - 메뉴 목록(List)
+          - `menuId` (Long)
+          - `categoryId` (Long)
+          - `menuName` (String)
+          - `price` (Integer)
+          - `menuUrl` (String)
+          - `available` (Boolean)
+          - `stockQuantity` (Integer)
+          - `createdAt` (LocalDateTime)
+          - `updatedAt` (LocalDateTime)
+        
+        ### 사용 방법
+        1. 별도의 파라미터 없이 요청합니다.
+        2. 등록된 모든 메뉴 목록을 반환합니다.
+        
+        ### 유의 사항
+        - 카테고리 구분 없이 모든 메뉴가 조회됩니다.
+        
+        ### 예외 처리
+        - 없음
+        """
   )
   ResponseEntity<List<MenuResponse>> getAllMenu();
 
   @Operation(
-      summary = "단일 메뉴 상세 조회",
+      summary = "카테고리별 메뉴 조회",
       description = """
-            메뉴 식별자(ID)를 통해 특정 메뉴의 상세 정보를 조회합니다.
-            
-            ### Path Variable
-            - `menu-id` (Long): 조회하고자 하는 메뉴의 고유 PK
-            
-            ### 주요 오류 코드
-            - **MENU_NOT_FOUND (404)**: 해당 ID의 메뉴가 존재하지 않습니다.
-            """
+        ### 요청 파라미터
+        - `category-id` (Long, required, PathVariable): 조회할 카테고리 ID
+        
+        ### 응답 데이터
+        - 메뉴 목록(List)
+          - `menuId` (Long)
+          - `categoryId` (Long)
+          - `menuName` (String)
+          - `price` (Integer)
+          - `menuUrl` (String)
+          - `available` (Boolean)
+          - `stockQuantity` (Integer)
+          - `createdAt` (LocalDateTime)
+          - `updatedAt` (LocalDateTime)
+        
+        ### 사용 방법
+        1. 카테고리 ID를 PathVariable로 전달하여 요청합니다.
+        2. 해당 카테고리에 속한 메뉴 목록을 반환합니다.
+        
+        ### 유의 사항
+        - 존재하지 않는 카테고리 ID로 요청 시 오류가 발생합니다.
+        
+        ### 예외 처리
+        - `CATEGORY_NOT_FOUND` (404 BAD_REQUEST): 카테고리를 찾을 수 없습니다.
+        """
   )
+  @Parameter(name = "category-id", description = "카테고리 고유 식별자", example = "1")
+  ResponseEntity<List<MenuResponse>> getMenusByCategory(@PathVariable("category-id") Long categoryId);
+
+  @Operation(
+      summary = "메뉴 단건 조회",
+      description = """
+        ### 요청 파라미터
+        - `menu-id` (Long, required, PathVariable): 조회할 메뉴 ID
+        
+        ### 응답 데이터
+        - `menuId` (Long)
+        - `categoryId` (Long)
+        - `menuName` (String)
+        - `price` (Integer)
+        - `menuUrl` (String)
+        - `available` (Boolean)
+        - `stockQuantity` (Integer)
+        - `createdAt` (LocalDateTime)
+        - `updatedAt` (LocalDateTime)
+        
+        ### 사용 방법
+        1. 메뉴 ID를 PathVariable로 전달하여 요청합니다.
+        2. 해당 메뉴의 상세 정보를 반환합니다.
+        
+        ### 유의 사항
+        - 존재하지 않는 메뉴 ID로 요청 시 오류가 발생합니다.
+        
+        ### 예외 처리
+        - `MENU_NOT_FOUND` (404 NOT_FOUND): 해당 메뉴를 찾을 수 없습니다.
+        """
+  )
+
   @Parameter(name = "menu-id", description = "메뉴 고유 식별자", example = "1")
   ResponseEntity<MenuResponse> getMenu(@PathVariable("menu-id") Long menuId);
 
   @Operation(
-      summary = "메뉴 정보 수정 (Admin)",
+      summary = "메뉴 수정",
       description = """
-            관리자 권한으로 기존 메뉴의 정보를 수정합니다. **부분 업데이트(Partial Update)**를 지원합니다.
-            
-            ### 수정 로직 상세
-            - **메뉴 이름**: 전달된 경우에만 수정하며, 본인을 제외한 다른 메뉴와 이름이 중복되는지 체크합니다.
-            - **가격**: 0보다 큰 값일 때만 반영됩니다.
-            - **재고/상태 연동**: `stockQuantity`를 0으로 수정할 경우, `available` 상태는 자동으로 `false`(품절)로 변경됩니다.
-            
-            ### 유의 사항
-            - 수정하지 않을 필드는 `null` 또는 빈 값으로 전달하면 기존 값이 유지됩니다.
-            - `menu-id`는 필수 Path Variable입니다.
-            
-            ### 요청 예시 (JSON)
-            ```json
-            {
-              "price": 18000,
-              "stockQuantity": 0
-            }
-            ```
-            """
+        ### 요청 파라미터
+        - `menu-id` (Long, required, PathVariable): 수정할 메뉴 ID
+        
+        ### 요청 바디
+        - `menuName` (String): 수정할 메뉴 이름
+        - `price` (Integer): 수정할 가격
+        - `available` (Boolean): 판매 가능 여부
+        - `stockQuantity` (Integer): 재고 수량
+        
+        ### 응답 데이터
+        - `menuId` (Long)
+        - `categoryId` (Long)
+        - `menuName` (String)
+        - `price` (Integer)
+        - `menuUrl` (String)
+        - `available` (Boolean)
+        - `stockQuantity` (Integer)
+        - `createdAt` (LocalDateTime)
+        - `updatedAt` (LocalDateTime)
+        
+        ### 사용 방법
+        1. 수정할 메뉴 ID를 PathVariable로 전달합니다.
+        2. 변경이 필요한 필드만 요청 바디에 포함하여 전송합니다.
+        3. 수정된 메뉴 정보를 반환합니다.
+        
+        ### 유의 사항
+        - 동일 카테고리 내에 이미 존재하는 메뉴 이름으로 변경할 수 없습니다.
+        - `menuName`이 null 또는 공백일 경우 중복 검사를 수행하지 않습니다.
+        
+        ### 예외 처리
+        - `MENU_NOT_FOUND` (400 BAD_REQUEST): 메뉴를 찾을 수 없습니다.
+        - `MENU_ALREADY_EXISTS` (400 BAD_REQUEST): 이미 존재하는 메뉴입니다.
+        """
   )
+
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "수정 성공"),
-      @ApiResponse(responseCode = "404", description = "메뉴를 찾을 수 없음"),
-      @ApiResponse(responseCode = "409", description = "변경하려는 이름이 이미 사용 중임")
+      @ApiResponse(responseCode = "404", description = "MENU_NOT_FOUND - 해당 메뉴를 찾을 수 없습니다."),
+      @ApiResponse(responseCode = "409", description = "MENU_ALREADY_EXISTS - 이미 등록된 메뉴 이름입니다.")
   })
   ResponseEntity<MenuResponse> updateMenu(
       @PathVariable("menu-id") Long menuId,
