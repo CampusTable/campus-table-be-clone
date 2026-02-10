@@ -1,5 +1,6 @@
 package shop.campustable.campustablebeclone.global.s3.service;
 
+import io.awspring.cloud.s3.ObjectMetadata;
 import io.awspring.cloud.s3.S3Exception;
 import io.awspring.cloud.s3.S3Resource;
 import io.awspring.cloud.s3.S3Template;
@@ -55,17 +56,19 @@ public class S3Service {
 
     String originalFilename = validateAndExtractFilename(file);
 
-    String storedPath = dirName + "/" + UUID.randomUUID() + "_" + originalFilename;
+    String storedPath = generateStoredPath(originalFilename, dirName);
     log.debug("생성된 파일명: {}", storedPath);
 
     try (InputStream inputStream = file.getInputStream()) {
 
-      S3Resource resource = s3Template.upload(bucket, storedPath, inputStream);
+      ObjectMetadata metadata = ObjectMetadata.builder()
+          .contentType(file.getContentType())
+          .build();
 
-      String s3Url = resource.getURL().toString();
-      log.debug("S3 업로드 성공: {}", s3Url);
+     s3Template.upload(bucket, storedPath, inputStream, metadata);
+     log.debug("uploadFile: S3 파일 업로드 성공: {}", storedPath);
 
-      return s3Url;
+      return storedPath;
 
     } catch (S3Exception e) {
       log.error("S3Exception - S3 파일 업로드 실패. 버킷: {}, 파일명: {}, 에러: {}", bucket, storedPath, e.getMessage());
@@ -88,9 +91,8 @@ public class S3Service {
     }
 
     try {
-      String key = extractKeyFromUrl(storedPath);
-      s3Template.deleteObject(bucket, key);
-      log.debug("S3 파일 삭제 성공: {}", key);
+      s3Template.deleteObject(bucket, storedPath);
+      log.debug("S3 파일 삭제 성공: {}", storedPath);
     } catch (S3Exception e) {
       log.error("S3Exception - S3 파일 삭제 실패. 버킷: {}, 파일명: {}, 에러: {}", bucket, storedPath, e.getMessage());
       throw new CustomException(ErrorCode.S3_DELETE_AMAZON_SERVICE_ERROR);
@@ -104,14 +106,11 @@ public class S3Service {
     }
   }
 
-  private String extractKeyFromUrl(String fileUrl) {
-    if (fileUrl.contains(".com/")) {
-      String encodedKey = fileUrl.substring(fileUrl.lastIndexOf(".com/") + 5);
-      String decodedKey = URLDecoder.decode(encodedKey, StandardCharsets.UTF_8);
-      log.debug("추출 및 디코딩된 S3 Key: [{}]", decodedKey);
-      return decodedKey;
-    }
-    return URLDecoder.decode(fileUrl, StandardCharsets.UTF_8);
+  private String generateStoredPath(String originalFilename, String dirName) {
+    String sanitizedFileName = originalFilename
+        .replaceAll("[/\\\\:*?\"<>|]", "_")
+        .replaceAll("\\s+", "_");
+    return dirName + "/" + UUID.randomUUID() + "-" + sanitizedFileName;
   }
 
 }
