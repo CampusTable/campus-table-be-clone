@@ -1,11 +1,10 @@
 package shop.campustable.campustablebeclone.domain.menu.service;
 
 import jakarta.transaction.Transactional;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springdoc.webmvc.core.service.RequestService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import shop.campustable.campustablebeclone.domain.category.entity.Category;
@@ -28,6 +27,16 @@ public class MenuService {
   private final CategoryRepository categoryRepository;
   private final S3Service s3Service;
 
+  @Value("${spring.cloud.aws.s3.domain}")
+  private String s3Domain;
+
+  private String getFullUrl(String menuUrl) {
+    if (menuUrl == null || menuUrl.isBlank()) {
+      return null;
+    }
+    return s3Domain + menuUrl;
+  }
+
   public MenuResponse createMenu(Long categoryId, MenuRequest request, MultipartFile image) {
 
     Category category = categoryRepository.findById(categoryId)
@@ -44,20 +53,20 @@ public class MenuService {
 
     String menuUrl = null;
     if (image != null && !image.isEmpty()) {
-      menuUrl = uploadMenuImage(image,category.getCafeteria().getName());
+      menuUrl = uploadMenuImage(image, category.getCafeteria().getName());
     }
 
-    Menu menu = request.toEntity(category,menuUrl);
+    Menu menu = request.toEntity(category, menuUrl);
 
     menuRepository.save(menu);
-    return MenuResponse.from(menu);
+    return MenuResponse.from(menu, getFullUrl(menu.getMenuUrl()));
   }
 
   public List<MenuResponse> getAllMenus() {
 
     List<Menu> menus = menuRepository.findAll();
     List<MenuResponse> responses = menus.stream()
-        .map(MenuResponse::from)
+        .map(menu -> MenuResponse.from(menu, getFullUrl(menu.getMenuUrl())))
         .toList();
     return responses;
 
@@ -74,7 +83,7 @@ public class MenuService {
     List<Menu> menus = menuRepository.findByCategory(category);
 
     return menus.stream()
-        .map(MenuResponse::from)
+        .map(menu-> MenuResponse.from(menu, getFullUrl(menu.getMenuUrl())))
         .toList();
   }
 
@@ -86,10 +95,10 @@ public class MenuService {
           return new CustomException(ErrorCode.MENU_NOT_FOUND);
         });
 
-    return MenuResponse.from(menu);
+    return MenuResponse.from(menu, getFullUrl(menu.getMenuUrl()));
   }
 
-  public MenuResponse updateMenu(Long menuId, MenuRequest request,MultipartFile image) {
+  public MenuResponse updateMenu(Long menuId, MenuRequest request, MultipartFile image) {
 
     Menu menu = menuRepository.findById(menuId)
         .orElseThrow(() -> {
@@ -107,10 +116,10 @@ public class MenuService {
           });
     }
 
-    if(image != null && !image.isEmpty()) {
-      String newUrl = uploadMenuImage(image,menu.getCategory().getCafeteria().getName());
+    if (image != null && !image.isEmpty()) {
+      String newUrl = uploadMenuImage(image, menu.getCategory().getCafeteria().getName());
 
-      if(menu.getMenuUrl() != null && !menu.getMenuUrl().isBlank()) {
+      if (menu.getMenuUrl() != null && !menu.getMenuUrl().isBlank()) {
         s3Service.deleteFile(menu.getMenuUrl());
       }
 
@@ -120,7 +129,7 @@ public class MenuService {
 
     menu.update(request);
 
-    return MenuResponse.from(menu);
+    return MenuResponse.from(menu,getFullUrl(menu.getMenuUrl()));
 
   }
 

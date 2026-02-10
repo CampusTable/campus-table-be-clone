@@ -23,10 +23,7 @@ public class MenuResponse {
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 
-  public static MenuResponse from(Menu menu) {
-
-    String s3Domain = "https://campus-table-s3.s3.ap-northeast-2.amazonaws.com/";
-    String fullUrl = (menu.getMenuUrl() != null) ? s3Domain + menu.getMenuUrl() : null;
+  public static MenuResponse from(Menu menu,String fullUrl) {
 
     return MenuResponse.builder()
         .menuId(menu.getId())
