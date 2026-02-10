@@ -1,0 +1,116 @@
+package shop.campustable.campustablebeclone.global.s3.service;
+
+import io.awspring.cloud.s3.ObjectMetadata;
+import io.awspring.cloud.s3.S3Exception;
+import io.awspring.cloud.s3.S3Resource;
+import io.awspring.cloud.s3.S3Template;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import shop.campustable.campustablebeclone.global.common.CommonUtil;
+import shop.campustable.campustablebeclone.global.exception.CustomException;
+import shop.campustable.campustablebeclone.global.exception.ErrorCode;
+import shop.campustable.campustablebeclone.global.s3.util.FileUtil;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class S3Service {
+
+  private final S3Template s3Template;
+
+  @Value("${spring.cloud.aws.s3.bucket}")
+  private String bucket;
+
+  /**
+   * 파일 검증 및 원본 파일명 반환
+   *
+   * @param file 요청된 MultipartFile
+   * @return 원본 파일명
+   */
+  private static String validateAndExtractFilename(MultipartFile file) {
+    // 파일 검증
+    if (FileUtil.isNullOrEmpty(file)) {
+      log.error("파일이 비어있거나 존재하지 않습니다.");
+      throw new CustomException(ErrorCode.INVALID_FILE_REQUEST);
+    }
+
+    // 원본 파일 명 검증
+    String originalFilename = file.getOriginalFilename();
+
+    if (CommonUtil.nvl(originalFilename, "").isEmpty()) {
+      log.error("원본 파일명이 비어있거나 존재하지 않습니다.");
+      throw new CustomException(ErrorCode.INVALID_FILE_REQUEST);
+    }
+    return originalFilename;
+  }
+
+  public String uploadFile(MultipartFile file, String dirName) {
+
+    String originalFilename = validateAndExtractFilename(file);
+
+    String storedPath = generateStoredPath(originalFilename, dirName);
+    log.debug("생성된 파일명: {}", storedPath);
+
+    try (InputStream inputStream = file.getInputStream()) {
+
+      ObjectMetadata metadata = ObjectMetadata.builder()
+          .contentType(file.getContentType())
+          .build();
+
+     s3Template.upload(bucket, storedPath, inputStream, metadata);
+     log.debug("uploadFile: S3 파일 업로드 성공: {}", storedPath);
+
+      return storedPath;
+
+    } catch (S3Exception e) {
+      log.error("S3Exception - S3 파일 업로드 실패. 버킷: {}, 파일명: {}, 에러: {}", bucket, storedPath, e.getMessage());
+      throw new CustomException(ErrorCode.S3_UPLOAD_AMAZON_CLIENT_ERROR);
+    } catch (IOException e) {
+      log.error("IOException - 파일 스트림 처리 중 에러 발생. 원본 파일명: {}, 파일명: {} 에러: {}", originalFilename, storedPath, e.getMessage());
+      throw new CustomException(ErrorCode.S3_UPLOAD_ERROR);
+    } catch (RuntimeException e) {
+      log.error("RuntimeException, 버킷: {}, 파일명: {}, 에러: {}", bucket, storedPath, e.getMessage());
+      throw new CustomException(ErrorCode.S3_UPLOAD_AMAZON_CLIENT_ERROR);
+    }
+
+  }
+
+  public void deleteFile(String storedPath) {
+
+    if (CommonUtil.nvl(storedPath, "").isEmpty()) {
+      log.warn("요청된 파일 경로가 없습니다.");
+      return;
+    }
+
+    try {
+      s3Template.deleteObject(bucket, storedPath);
+      log.debug("S3 파일 삭제 성공: {}", storedPath);
+    } catch (S3Exception e) {
+      log.error("S3Exception - S3 파일 삭제 실패. 버킷: {}, 파일명: {}, 에러: {}", bucket, storedPath, e.getMessage());
+      throw new CustomException(ErrorCode.S3_DELETE_AMAZON_SERVICE_ERROR);
+    } catch (RuntimeException e) {
+      // 기존 AmazonClientException 역할 (네트워크 등 클라이언트 에러)
+      log.error("RuntimeException - S3 파일 삭제 실패. 버킷: {}, 파일명: {}, 에러: {}", bucket, storedPath, e.getMessage());
+      throw new CustomException(ErrorCode.S3_DELETE_AMAZON_CLIENT_ERROR);
+    } catch (Exception e) {
+      log.error("S3 파일 삭제 실패. 버킷: {}, 파일명: {}, 에러: {}", bucket, storedPath, e.getMessage());
+      throw new CustomException(ErrorCode.S3_DELETE_ERROR);
+    }
+  }
+
+  private String generateStoredPath(String originalFilename, String dirName) {
+    String sanitizedFileName = originalFilename
+        .replaceAll("[/\\\\:*?\"<>|]", "_")
+        .replaceAll("\\s+", "_");
+    return dirName + "/" + UUID.randomUUID() + "-" + sanitizedFileName;
+  }
+
+}

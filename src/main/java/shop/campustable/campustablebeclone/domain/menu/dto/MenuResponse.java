@@ -23,13 +23,14 @@ public class MenuResponse {
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 
-  public static MenuResponse from(Menu menu) {
+  public static MenuResponse from(Menu menu,String fullUrl) {
+
     return MenuResponse.builder()
         .menuId(menu.getId())
         .categoryId(menu.getCategory().getId())
         .menuName(menu.getMenuName())
         .price(menu.getPrice())
-        .menuUrl(menu.getMenuUrl())
+        .menuUrl(fullUrl)
         .available(menu.getAvailable())
         .stockQuantity(menu.getStockQuantity())
         .createdAt(menu.getCreatedAt())

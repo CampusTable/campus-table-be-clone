@@ -16,6 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import shop.campustable.campustablebeclone.domain.category.entity.Category;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuRequest;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuResponse;
@@ -44,6 +45,7 @@ public class Menu extends BaseTimeEntity {
   private Integer price;
 
   @Column(length = 500)
+  @Setter
   private String menuUrl;
 
   @Column(nullable = false)
