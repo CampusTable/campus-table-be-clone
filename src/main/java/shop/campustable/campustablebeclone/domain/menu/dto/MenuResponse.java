@@ -33,7 +33,7 @@ public class MenuResponse {
         .categoryId(menu.getCategory().getId())
         .menuName(menu.getMenuName())
         .price(menu.getPrice())
-        .menuUrl(menu.getMenuUrl())
+        .menuUrl(fullUrl)
         .available(menu.getAvailable())
         .stockQuantity(menu.getStockQuantity())
         .createdAt(menu.getCreatedAt())
