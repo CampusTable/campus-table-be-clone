@@ -61,9 +61,11 @@ public class MenuController implements MenuControllerDocs {
   }
 
   @Override
-  @PatchMapping("/admin/menus/{menu-id}")
-  public ResponseEntity<MenuResponse> updateMenu(@PathVariable("menu-id") Long menuId, @RequestBody MenuRequest request) {
-    MenuResponse response = menuService.updateMenu(menuId, request);
+  @PatchMapping(value = "/admin/menus/{menu-id}", consumes =  MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ResponseEntity<MenuResponse> updateMenu(
+      @PathVariable("menu-id") Long menuId,
+      @ModelAttribute MenuRequest request) {
+    MenuResponse response = menuService.updateMenu(menuId, request,request.getImage());
     return ResponseEntity.ok(response);
   }
 

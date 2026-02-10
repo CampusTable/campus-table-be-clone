@@ -5,6 +5,8 @@ import io.awspring.cloud.s3.S3Resource;
 import io.awspring.cloud.s3.S3Template;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -71,11 +73,45 @@ public class S3Service {
     } catch (IOException e) {
       log.error("IOException - 파일 스트림 처리 중 에러 발생. 원본 파일명: {}, 파일명: {} 에러: {}", originalFilename, storedPath, e.getMessage());
       throw new CustomException(ErrorCode.S3_UPLOAD_ERROR);
-    }catch (RuntimeException e){
+    } catch (RuntimeException e) {
       log.error("RuntimeException, 버킷: {}, 파일명: {}, 에러: {}", bucket, storedPath, e.getMessage());
       throw new CustomException(ErrorCode.S3_UPLOAD_AMAZON_CLIENT_ERROR);
     }
 
+  }
+
+  public void deleteFile(String storedPath) {
+
+    if (CommonUtil.nvl(storedPath, "").isEmpty()) {
+      log.warn("요청된 파일 경로가 없습니다.");
+      return;
+    }
+
+    try {
+      String key = extractKeyFromUrl(storedPath);
+      s3Template.deleteObject(bucket, key);
+      log.debug("S3 파일 삭제 성공: {}", key);
+    } catch (S3Exception e) {
+      log.error("S3Exception - S3 파일 삭제 실패. 버킷: {}, 파일명: {}, 에러: {}", bucket, storedPath, e.getMessage());
+      throw new CustomException(ErrorCode.S3_DELETE_AMAZON_SERVICE_ERROR);
+    } catch (RuntimeException e) {
+      // 기존 AmazonClientException 역할 (네트워크 등 클라이언트 에러)
+      log.error("RuntimeException - S3 파일 삭제 실패. 버킷: {}, 파일명: {}, 에러: {}", bucket, storedPath, e.getMessage());
+      throw new CustomException(ErrorCode.S3_DELETE_AMAZON_CLIENT_ERROR);
+    } catch (Exception e) {
+      log.error("S3 파일 삭제 실패. 버킷: {}, 파일명: {}, 에러: {}", bucket, storedPath, e.getMessage());
+      throw new CustomException(ErrorCode.S3_DELETE_ERROR);
+    }
+  }
+
+  private String extractKeyFromUrl(String fileUrl) {
+    if (fileUrl.contains(".com/")) {
+      String encodedKey = fileUrl.substring(fileUrl.lastIndexOf(".com/") + 5);
+      String decodedKey = URLDecoder.decode(encodedKey, StandardCharsets.UTF_8);
+      log.debug("추출 및 디코딩된 S3 Key: [{}]", decodedKey);
+      return decodedKey;
+    }
+    return URLDecoder.decode(fileUrl, StandardCharsets.UTF_8);
   }
 
 }

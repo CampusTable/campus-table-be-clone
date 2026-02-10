@@ -20,7 +20,7 @@ public class MenuRequest {
   private Integer stockQuantity;
   private MultipartFile image;
 
-  public Menu toEntity(Category category) {
+  public Menu toEntity(Category category, String menuUrl) {
 
     Boolean isAvailable = this.stockQuantity != null
                           && this.stockQuantity > 0
@@ -30,7 +30,7 @@ public class MenuRequest {
         .menuName(menuName)
         .category(category)
         .price(price)
-        .menuUrl(null)
+        .menuUrl(menuUrl)
         .available(isAvailable)
         .stockQuantity(stockQuantity)
         .build();

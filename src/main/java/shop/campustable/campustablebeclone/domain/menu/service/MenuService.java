@@ -28,53 +28,28 @@ public class MenuService {
   private final CategoryRepository categoryRepository;
   private final S3Service s3Service;
 
-  public MenuResponse createMenu(Long categoryId,MenuRequest request, MultipartFile image) {
+  public MenuResponse createMenu(Long categoryId, MenuRequest request, MultipartFile image) {
 
     Category category = categoryRepository.findById(categoryId)
-            .orElseThrow(()->{
-              log.error("createMenu: 유효하지 않은 categoryId {}", categoryId);
-              return  new CustomException(ErrorCode.CATEGORY_NOT_FOUND);
-            });
+        .orElseThrow(() -> {
+          log.error("createMenu: 유효하지 않은 categoryId {}", categoryId);
+          return new CustomException(ErrorCode.CATEGORY_NOT_FOUND);
+        });
 
-    menuRepository.findByCategoryAndMenuName(category,request.getMenuName())
+    menuRepository.findByCategoryAndMenuName(category, request.getMenuName())
         .ifPresent(menu -> {
           log.error("createMenu: menu가 이미 존재합니다. menuName: {}", menu.getMenuName());
           throw new CustomException(ErrorCode.MENU_ALREADY_EXISTS);
         });
 
-    log.info("요청 데이터 확인 - name: {}, price: {}", request.getMenuName(), request.getPrice());
-
-
-    Menu menu = request.toEntity(category);
-    Menu savedMenu = menuRepository.save(menu);
-
-
-    if(image!=null && !image.isEmpty()) {
-      return uploadMenuImage(savedMenu.getId(), image);
+    String menuUrl = null;
+    if (image != null && !image.isEmpty()) {
+      menuUrl = uploadMenuImage(image,category.getCafeteria().getName());
     }
 
-    return MenuResponse.from(menu);
-  }
+    Menu menu = request.toEntity(category,menuUrl);
 
-  public MenuResponse uploadMenuImage(Long menuId, MultipartFile image) {
-
-    Menu menu = menuRepository.findById(menuId)
-        .orElseThrow(()->{
-          log.error("uploadMenuImage: 해당 메뉴는 존재하지 않습니다. menuId: {}", menuId);
-          return  new CustomException(ErrorCode.MENU_NOT_FOUND);
-        });
-
-    if (image == null || image.isEmpty()) {
-      log.error("uploadMenuImage: 이미지 파일은 필수입니다.");
-      throw new CustomException(ErrorCode.INVALID_FILE_REQUEST);
-    }
-
-    String cafeteriaName = menu.getCategory().getCafeteria().getName();
-    String dirName = "menu/" + cafeteriaName;
-
-    String newUrl = s3Service.uploadFile(image, dirName);
-    menu.setMenuUrl(newUrl);
-
+    menuRepository.save(menu);
     return MenuResponse.from(menu);
   }
 
@@ -91,14 +66,14 @@ public class MenuService {
   public List<MenuResponse> getMenusByCategory(Long categoryId) {
 
     Category category = categoryRepository.findById(categoryId)
-        .orElseThrow(()->{
+        .orElseThrow(() -> {
           log.error("getMenusByCategory: 유효하지 않은 categoryId {}", categoryId);
-          return  new CustomException(ErrorCode.CATEGORY_NOT_FOUND);
+          return new CustomException(ErrorCode.CATEGORY_NOT_FOUND);
         });
 
     List<Menu> menus = menuRepository.findByCategory(category);
 
-    return  menus.stream()
+    return menus.stream()
         .map(MenuResponse::from)
         .toList();
   }
@@ -114,27 +89,43 @@ public class MenuService {
     return MenuResponse.from(menu);
   }
 
-  public MenuResponse updateMenu(Long menuId, MenuRequest request) {
+  public MenuResponse updateMenu(Long menuId, MenuRequest request,MultipartFile image) {
 
     Menu menu = menuRepository.findById(menuId)
         .orElseThrow(() -> {
           log.error("updateMenu: 해당 메뉴는 존재 하지 않습니다. menuId: {}", menuId);
           return new CustomException(ErrorCode.MENU_NOT_FOUND);
         });
+
     if (request.getMenuName() != null && !request.getMenuName().isBlank()) {
-      menuRepository.findByCategoryAndMenuName(menu.getCategory(),request.getMenuName())
+      menuRepository.findByCategoryAndMenuName(menu.getCategory(), request.getMenuName())
           .ifPresent(existedMenu -> {
-            if(!existedMenu.getId().equals(menu.getId())) {
+            if (!existedMenu.getId().equals(menu.getId())) {
               log.error("updateMenu: 이미 카테고리에 존재하는 메뉴 입니다. menuName: {}", existedMenu.getMenuName());
               throw new CustomException(ErrorCode.MENU_ALREADY_EXISTS);
             }
           });
     }
 
+    if(image != null && !image.isEmpty()) {
+      if(menu.getMenuUrl() != null && !menu.getMenuUrl().isBlank()) {
+        s3Service.deleteFile(menu.getMenuUrl());
+      }
+
+      String newUrl = uploadMenuImage(image,menu.getCategory().getCafeteria().getName());
+      menu.setMenuUrl(newUrl);
+
+    }
+
     menu.update(request);
 
     return MenuResponse.from(menu);
 
+  }
+
+  private String uploadMenuImage(MultipartFile image, String cafeteriaName) {
+    String dirName = "menu/" + cafeteriaName;
+    return s3Service.uploadFile(image, dirName);
   }
 
 }
