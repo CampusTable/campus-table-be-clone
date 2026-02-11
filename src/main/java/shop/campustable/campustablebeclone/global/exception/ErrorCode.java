@@ -61,7 +61,16 @@ public enum ErrorCode {
 
   S3_DELETE_AMAZON_CLIENT_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S3 클라이언트 에러로 인해 파일 삭제에 실패했습니다."),
 
-  S3_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S3 파일 삭제 중 오류 발생");
+  S3_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S3 파일 삭제 중 오류 발생"),
+
+  // 장바구니
+  CART_NOT_FOUND(HttpStatus.NOT_FOUND, "장바구니를 찾을 수 없습니다."),
+
+  CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "장바구니 항목을 찾을 수 없습니다."),
+
+  CART_MIXED_CAFETERIA(HttpStatus.BAD_REQUEST, "같은 식당의 메뉴만 장바구니에 담을 수 있습니다."),
+
+  CART_ITEM_QUANTITY_LIMIT(HttpStatus.BAD_REQUEST, "한 메뉴당 최대 9개까지만 담을 수 있습니다.");
 
   private final HttpStatus status;
   private final String message;
