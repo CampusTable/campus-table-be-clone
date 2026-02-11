@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
     String errorMessage = e.getBindingResult().getFieldErrors().stream()
         .findFirst()
         .map(fieldError -> fieldError.getDefaultMessage())
-        .orElse(ErrorCode.INVALID_REQUEST.getMessage());
+        .orElse(ErrorCode.INVALID_INPUT_VALUE.getMessage());
 
     // ErrorCode.INVALID_INPUT_VALUE(400)를 기본으로 사용하되, 메시지만 DTO에 설정한 것으로 교체
     ErrorResponse response = ErrorResponse.builder()

@@ -13,11 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
 import shop.campustable.campustablebeclone.domain.user.entity.User;
 import shop.campustable.campustablebeclone.global.exception.CustomException;
 import shop.campustable.campustablebeclone.global.exception.ErrorCode;
 
+@Slf4j
 @Entity
 @Getter
 @NoArgsConstructor
@@ -76,7 +78,16 @@ public class Cart {
   }
 
   public void removeItem(Long cartItemId) {
-    this.cartItems.removeIf(cartItem -> cartItem.getId().equals(cartItemId));
+
+    CartItem cartItem = this.cartItems.stream()
+        .filter(item->item.getId().equals(cartItemId))
+        .findFirst()
+        .orElseThrow(()->{
+          log.warn("해당 cartItem이 존재하지 않습니다. {}",cartItemId);
+          return new CustomException(ErrorCode.CART_ITEM_NOT_FOUND);
+        });
+
+    this.cartItems.remove(cartItem);
 
     if (this.cartItems.isEmpty()) {
       this.cafeteriaId = null;

@@ -74,10 +74,11 @@ public class CartService {
         });
 
     Cart cart = cartRepository.findByUserWithItems(user)
-        .orElseThrow(() -> {
-          log.warn("getMyCart: 유저 {}에게 cart가 존재하지 않습니다.", userId);
-          return new CustomException(ErrorCode.CART_NOT_FOUND);
-        });
+        .orElse(null);
+
+    if (cart == null || cart.getCartItems().isEmpty()) {
+      return CartResponse.empty();
+    }
 
     List<CartItemResponse> responses = cart.getCartItems().stream()
         .map(cartItem -> CartItemResponse.from(

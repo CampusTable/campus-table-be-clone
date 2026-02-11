@@ -28,6 +28,15 @@ public class CartResponse {
         .build();
   }
 
+  public static CartResponse empty(){
+    return CartResponse.builder()
+        .cartId(null)
+        .cafeteriaId(null)
+        .cartItems(List.of())
+        .totalPrice(0)
+        .build();
+  }
+
 
 
 }
