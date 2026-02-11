@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import shop.campustable.campustablebeclone.domain.cart.dto.CartRequest;
+import shop.campustable.campustablebeclone.domain.cart.dto.CartItemRequest;
 import shop.campustable.campustablebeclone.domain.cart.dto.CartResponse;
 import shop.campustable.campustablebeclone.domain.cart.service.CartService;
 
@@ -23,7 +23,7 @@ public class CartController {
   private final CartService cartService;
 
   @PostMapping
-  public ResponseEntity<CartResponse> addOrUpdateCart(@Valid @RequestBody CartRequest request) {
+  public ResponseEntity<CartResponse> addOrUpdateCart(@Valid @RequestBody CartItemRequest request) {
     CartResponse response = cartService.addOrUpdateItem(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }

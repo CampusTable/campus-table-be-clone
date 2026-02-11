@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.campustable.campustablebeclone.domain.cart.dto.CartItemResponse;
-import shop.campustable.campustablebeclone.domain.cart.dto.CartRequest;
+import shop.campustable.campustablebeclone.domain.cart.dto.CartItemRequest;
 import shop.campustable.campustablebeclone.domain.cart.dto.CartResponse;
 import shop.campustable.campustablebeclone.domain.cart.entity.Cart;
 import shop.campustable.campustablebeclone.domain.cart.repository.CartRepository;
@@ -41,7 +41,7 @@ public class CartService {
     return baseUrl + path;
   }
 
-  public CartResponse addOrUpdateItem(CartRequest request) {
+  public CartResponse addOrUpdateItem(CartItemRequest request) {
     Long userId = SecurityUtil.getCurrentUserId();
     User user = userRepository.findById(userId)
         .orElseThrow(() -> {
@@ -55,7 +55,7 @@ public class CartService {
           return new CustomException(ErrorCode.MENU_NOT_FOUND);
         });
 
-    Cart cart = cartRepository.findByUser(user)
+    Cart cart = cartRepository.findByUserWithItems(user)
         .orElseGet(() -> cartRepository.save(new Cart(user)));
 
     cart.addOrUpdateItem(menu, request.getQuantity());
