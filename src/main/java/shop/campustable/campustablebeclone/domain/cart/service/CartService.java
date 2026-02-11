@@ -101,7 +101,7 @@ public class CartService {
           log.warn("deleteCartItem: 유효하지 않은 user {}", userId);
           return new CustomException(ErrorCode.USER_NOT_FOUND);
         });
-    Cart cart = cartRepository.findByUser(user)
+    Cart cart = cartRepository.findByUserWithItems(user)
         .orElseThrow(() -> {
           log.warn("deleteCartItem: 유저 {}에게 cart가 존재하지 않습니다.", userId);
           return new CustomException(ErrorCode.CART_NOT_FOUND);
@@ -118,7 +118,7 @@ public class CartService {
           return new CustomException(ErrorCode.USER_NOT_FOUND);
         });
 
-    Cart cart = cartRepository.findByUser(user)
+    Cart cart = cartRepository.findByUserWithItems(user)
         .orElseThrow(() -> {
           log.warn("clearCart: 유저 {}에게 cart가 존재하지 않습니다.", userId);
           return new CustomException(ErrorCode.CART_NOT_FOUND);
