@@ -85,7 +85,7 @@ public class MenuService {
     List<Menu> menus = menuRepository.findByCategory(category);
 
     return menus.stream()
-        .map(menu-> MenuResponse.from(menu, getFullUrl(menu.getMenuUrl())))
+        .map(menu -> MenuResponse.from(menu, getFullUrl(menu.getMenuUrl())))
         .toList();
   }
 
@@ -124,11 +124,11 @@ public class MenuService {
       String oldUrl = menu.getMenuUrl();
       menu.setMenuUrl(newUrl);
 
-      if(oldUrl != null && !oldUrl.isBlank()) {
-        try{
+      if (oldUrl != null && !oldUrl.isBlank()) {
+        try {
           s3Service.deleteFile(oldUrl);
-        }catch(Exception e) {
-          log.warn("updateMenu: 기존 이미지 삭제 실패 {}", oldUrl);
+        } catch (Exception e) {
+          log.warn("updateMenu: 기존 이미지 삭제 실패 {}", oldUrl, e);
         }
       }
 
@@ -136,7 +136,7 @@ public class MenuService {
 
     menu.update(request);
 
-    return MenuResponse.from(menu,getFullUrl(menu.getMenuUrl()));
+    return MenuResponse.from(menu, getFullUrl(menu.getMenuUrl()));
 
   }
 

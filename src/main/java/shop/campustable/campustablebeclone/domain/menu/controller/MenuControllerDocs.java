@@ -37,7 +37,7 @@ public interface MenuControllerDocs {
           - `categoryId` (Long): 카테고리 ID
           - `menuName` (String): 메뉴 이름
           - `price` (Integer): 메뉴 가격
-          - `menuUrl` (String): 메뉴 이미지 URL (현재 null)
+          - `menuUrl` (String): 메뉴 이미지 URL (이미지 미첨부 시 null)
           - `available` (Boolean): 판매 가능 여부  
           - `stockQuantity` (Integer): 재고 수량
           - `createdAt` (LocalDateTime): 생성 일시
