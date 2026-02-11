@@ -119,11 +119,16 @@ public class MenuService {
     if (image != null && !image.isEmpty()) {
       String newUrl = uploadMenuImage(image, menu.getCategory().getCafeteria().getName());
 
-      if (menu.getMenuUrl() != null && !menu.getMenuUrl().isBlank()) {
-        s3Service.deleteFile(menu.getMenuUrl());
-      }
-
+      String oldUrl = menu.getMenuUrl();
       menu.setMenuUrl(newUrl);
+
+      if(oldUrl != null && !oldUrl.isBlank()) {
+        try{
+          s3Service.deleteFile(oldUrl);
+        }catch(Exception e) {
+          log.warn("updateMenu: 기존 이미지 삭제 실패 {}", oldUrl);
+        }
+      }
 
     }
 

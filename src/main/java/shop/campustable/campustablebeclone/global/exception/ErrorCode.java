@@ -49,6 +49,8 @@ public enum ErrorCode {
   CATEGORY_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 카테고리입니다."),
 
   //S3
+  INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "이미지 파일(.jpg, .jpeg, .png, .webp)만 업로드 가능합니다."),
+
   INVALID_FILE_REQUEST(HttpStatus.BAD_REQUEST, "유효하지 않은 파일 요청입니다."),
 
   S3_UPLOAD_AMAZON_CLIENT_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S3 클라이언트 에러로 인해 파일 업로드에 실패했습니다."),

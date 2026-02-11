@@ -25,7 +25,7 @@ public class MenuController implements MenuControllerDocs {
   private final MenuService menuService;
 
   @Override
-  @PostMapping(value = "/admin/categories/{category-id}/menus", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PostMapping(value = "/admin/categories/{category-id}/menus")
   public ResponseEntity<MenuResponse> createMenu(
       @PathVariable(name = "category-id") Long categoryId,
       @ModelAttribute MenuRequest request) {
@@ -61,7 +61,7 @@ public class MenuController implements MenuControllerDocs {
   }
 
   @Override
-  @PatchMapping(value = "/admin/menus/{menu-id}", consumes =  MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PatchMapping(value = "/admin/menus/{menu-id}")
   public ResponseEntity<MenuResponse> updateMenu(
       @PathVariable("menu-id") Long menuId,
       @ModelAttribute MenuRequest request) {

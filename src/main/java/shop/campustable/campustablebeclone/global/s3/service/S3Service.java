@@ -42,6 +42,12 @@ public class S3Service {
       throw new CustomException(ErrorCode.INVALID_FILE_REQUEST);
     }
 
+    String contentType = file.getContentType();
+    if (contentType == null || !contentType.startsWith("image/")) {
+      log.error("이미지 파일만 업로드 가능합니다. contentType: {}", contentType);
+      throw new CustomException(ErrorCode.INVALID_FILE_TYPE);
+    }
+
     // 원본 파일 명 검증
     String originalFilename = file.getOriginalFilename();
 
@@ -65,8 +71,8 @@ public class S3Service {
           .contentType(file.getContentType())
           .build();
 
-     s3Template.upload(bucket, storedPath, inputStream, metadata);
-     log.debug("uploadFile: S3 파일 업로드 성공: {}", storedPath);
+      s3Template.upload(bucket, storedPath, inputStream, metadata);
+      log.debug("uploadFile: S3 파일 업로드 성공: {}", storedPath);
 
       return storedPath;
 
@@ -107,10 +113,15 @@ public class S3Service {
   }
 
   private String generateStoredPath(String originalFilename, String dirName) {
+    String sanitizedDirName = dirName
+        .replaceAll("[^a-zA-Z0-9가-힣/_-]", "_")
+        .replaceAll("\\s+", "_");
+
     String sanitizedFileName = originalFilename
         .replaceAll("[/\\\\:*?\"<>|]", "_")
         .replaceAll("\\s+", "_");
-    return dirName + "/" + UUID.randomUUID() + "-" + sanitizedFileName;
+
+    return sanitizedDirName + "/" + UUID.randomUUID() + "-" + sanitizedFileName;
   }
 
 }
