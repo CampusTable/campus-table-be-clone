@@ -1,12 +1,16 @@
 package shop.campustable.campustablebeclone.domain.cart.service;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import shop.campustable.campustablebeclone.domain.cart.dto.CartItemResponse;
 import shop.campustable.campustablebeclone.domain.cart.dto.CartRequest;
 import shop.campustable.campustablebeclone.domain.cart.dto.CartResponse;
 import shop.campustable.campustablebeclone.domain.cart.entity.Cart;
+import shop.campustable.campustablebeclone.domain.cart.entity.CartItem;
 import shop.campustable.campustablebeclone.domain.cart.repository.CartRepository;
 import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
 import shop.campustable.campustablebeclone.domain.menu.repository.MenuRepository;
@@ -26,8 +30,19 @@ public class CartService {
   private final MenuRepository menuRepository;
   private final UserRepository userRepository;
 
+  @Value("${spring.cloud.aws.s3.domain}")
+  private String s3Domain;
 
-  public void addOrUpdateItem(CartRequest request) {
+  private String getFullUrl(String menuUrl) {
+    if (menuUrl == null || menuUrl.isBlank()) {
+      return null;
+    }
+    String baseUrl = s3Domain.endsWith("/") ? s3Domain : s3Domain + "/";
+    String path = menuUrl.startsWith("/") ? menuUrl.substring(1) : menuUrl;
+    return baseUrl + path;
+  }
+
+  public CartResponse addOrUpdateItem(CartRequest request) {
     Long userId = SecurityUtil.getCurrentUserId();
     User user = userRepository.findById(userId)
         .orElseThrow(() -> {
@@ -46,6 +61,7 @@ public class CartService {
 
     cart.addOrUpdateItem(menu, request.getQuantity());
     log.info("addOrUpdateItem: 유저 {} - 메뉴 {} 를 {}개 담았습니다.", user, menu.getMenuName(), request.getQuantity());
+    return getMyCart();
   }
 
   @Transactional(readOnly = true)
@@ -60,12 +76,56 @@ public class CartService {
 
     Cart cart = cartRepository.findByUser(user)
         .orElseThrow(() -> {
-          log.warn("유저 {}에게 cart가 존재하지 않습니다.", userId);
+          log.warn("getMyCart: 유저 {}에게 cart가 존재하지 않습니다.", userId);
           return new CustomException(ErrorCode.CART_NOT_FOUND);
         });
 
+    List<CartItemResponse> responses = cart.getCartItems().stream()
+        .map(cartItem -> CartItemResponse.from(
+            cartItem,
+            getFullUrl(cartItem.getMenu().getMenuUrl())
+            ))
+        .toList();
 
+    int totalPrice = responses.stream()
+        .mapToInt(CartItemResponse::getSubtotal)
+        .sum();
 
+    return CartResponse.from(cart, responses, totalPrice);
   }
+
+  public CartResponse deleteCartItem(Long cartItemId) {
+    Long userId = SecurityUtil.getCurrentUserId();
+    User user = userRepository.findById(userId)
+        .orElseThrow(()->{
+          log.warn("deleteCartItem: 유효하지 않은 user {}", userId);
+          return new CustomException(ErrorCode.USER_NOT_FOUND);
+        });
+    Cart cart = cartRepository.findByUser(user)
+        .orElseThrow(()->{
+          log.warn("deleteCartItem: 유저 {}에게 cart가 존재하지 않습니다.", userId);
+          return new CustomException(ErrorCode.CART_NOT_FOUND);
+        });
+    cart.removeItem(cartItemId);
+    return getMyCart();
+  }
+
+  public void clearMyCart(){
+    Long userId = SecurityUtil.getCurrentUserId();
+    User user = userRepository.findById(userId)
+        .orElseThrow(()->{
+          log.warn("clearCart: 유효하지 않은 user {}", userId);
+          return new CustomException(ErrorCode.USER_NOT_FOUND);
+        });
+
+    Cart cart = cartRepository.findByUser(user)
+        .orElseThrow(()->{
+          log.warn("clearCart: 유저 {}에게 cart가 존재하지 않습니다.", userId);
+          return new CustomException(ErrorCode.CART_NOT_FOUND);
+        });
+
+    cart.clearCart();
+  }
+
 
 }

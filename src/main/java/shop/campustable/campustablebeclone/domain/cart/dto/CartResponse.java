@@ -18,31 +18,14 @@ public class CartResponse {
   private List<CartItemResponse> cartItems;
   private int totalPrice;
 
-  @Getter
-  @Builder
-  @NoArgsConstructor
-  @AllArgsConstructor
-  public static class CartItemResponse{
-    private Long menuId;
-    private String menuName;
-    private String imageUrl;
-    private int price;
-    private int quantity;
-  }
 
-  public static CartResponse from(Cart cart, String s3Domain){
-    List<CartItemResponse> cartItems = cart.getCartItems().stream()
-        .map(cartItem->{
-
-          String menuUrl = cartItem.getMenu().getMenuUrl();
-          String fullUrl = null;
-
-          if(menuUrl != null && !menuUrl.isBlank()){
-            fullUrl = s3Domain + menuUrl;
-          }
-
-        })
-        )
+  public static CartResponse from(Cart cart,List<CartItemResponse> cartItems,int totalPrice) {
+    return CartResponse.builder()
+        .cartId(cart.getId())
+        .cafeteriaId(cart.getCafeteriaId())
+        .cartItems(cartItems)
+        .totalPrice(totalPrice)
+        .build();
   }
 
 

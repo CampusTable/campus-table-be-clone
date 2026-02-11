@@ -31,7 +31,7 @@ public class Cart {
   @JoinColumn(name = "user_id")
   private User user;
 
-  @OneToMany(mappedBy = "cafeteria",
+  @OneToMany(mappedBy = "cart",
       cascade = CascadeType.ALL,
       orphanRemoval = true
   )
@@ -45,7 +45,7 @@ public class Cart {
 
   public void addOrUpdateItem(Menu menu, int quantity) {
     Long menuCafeteriaId = menu.getCategory().getCafeteria().getId();
-    if (this.cafeteriaId != null && this.cafeteriaId.equals(menuCafeteriaId) && !cartItems.isEmpty()) {
+    if (this.cafeteriaId != null && !this.cafeteriaId.equals(menuCafeteriaId) && !cartItems.isEmpty()) {
       throw new CustomException(ErrorCode.CART_MIXED_CAFETERIA);
     }
     this.cafeteriaId = menuCafeteriaId;
@@ -66,6 +66,14 @@ public class Cart {
                 .quantity(quantity)
                 .build())
         );
+  }
+
+  public void removeItem(Long cartItemId) {
+    this.cartItems.removeIf(cartItem -> cartItem.getId().equals(cartItemId));
+
+    if (this.cartItems.isEmpty()) {
+      this.cafeteriaId = null;
+    }
   }
 
   public void clearCart(){
