@@ -34,7 +34,9 @@ public class MenuService {
     if (menuUrl == null || menuUrl.isBlank()) {
       return null;
     }
-    return s3Domain + menuUrl;
+    String baseUrl = s3Domain.endsWith("/") ? s3Domain : s3Domain + "/";
+    String path = menuUrl.startsWith("/") ? menuUrl.substring(1) : menuUrl;
+    return baseUrl + path;
   }
 
   public MenuResponse createMenu(Long categoryId, MenuRequest request, MultipartFile image) {

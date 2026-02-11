@@ -30,6 +30,7 @@ public interface MenuControllerDocs {
           - `price` (Integer): 메뉴 가격
           - `available` (Boolean): 메뉴 판매 가능 여부
           - `stockQuantity` (Integer): 메뉴 재고 수량
+          - `image` (MultipartFile, optional): 메뉴 이미지 파일 (.jpg, .jpeg, .png, .webp)
           
           ### 응답 데이터
           - `menuId` (Long): 생성된 메뉴 ID
@@ -52,8 +53,8 @@ public interface MenuControllerDocs {
           - `available` 값이 true이더라도 `stockQuantity`가 0 이하이면 판매 불가 상태로 저장됩니다.
           
           ### 예외 처리
-          - `CATEGORY_NOT_FOUND` (404 BAD_REQUEST): 카테고리를 찾을 수 없습니다.
-          - `MENU_ALREADY_EXISTS` (409 BAD_REQUEST): 이미 존재하는 메뉴입니다.
+          - `CATEGORY_NOT_FOUND` (404 NOT_FOUND): 카테고리를 찾을 수 없습니다.
+          - `MENU_ALREADY_EXISTS` (409 CONFLICT): 이미 존재하는 메뉴입니다.
           """,
       requestBody = @RequestBody(
           content = @Content(
@@ -178,6 +179,7 @@ public interface MenuControllerDocs {
           - `price` (Integer): 수정할 가격
           - `available` (Boolean): 판매 가능 여부
           - `stockQuantity` (Integer): 재고 수량
+          - `image` (MultipartFile, optional): 메뉴 이미지 파일 (.jpg, .jpeg, .png, .webp)
           
           ### 응답 데이터
           - `menuId` (Long)
