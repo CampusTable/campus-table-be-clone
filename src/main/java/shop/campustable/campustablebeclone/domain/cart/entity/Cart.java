@@ -45,13 +45,20 @@ public class Cart {
 
   public void addOrUpdateItem(Menu menu, int quantity) {
     Long menuCafeteriaId = menu.getCategory().getCafeteria().getId();
+
+    if(quantity == 0){
+      this.cartItems.removeIf(cartItem -> cartItem.getMenu().getId().equals(menu.getId()));
+
+      if(this.cartItems.isEmpty()){
+        this.cafeteriaId = null;
+      }
+      return;
+    }
+
     if (this.cafeteriaId != null && !this.cafeteriaId.equals(menuCafeteriaId) && !cartItems.isEmpty()) {
       throw new CustomException(ErrorCode.CART_MIXED_CAFETERIA);
     }
     this.cafeteriaId = menuCafeteriaId;
-
-    if(quantity > 9)
-      throw new CustomException(ErrorCode.CART_ITEM_QUANTITY_LIMIT);
 
     this.cartItems.stream()
         .filter(cartItem -> cartItem.getMenu().getId().equals(menu.getId()))

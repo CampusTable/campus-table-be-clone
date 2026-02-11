@@ -43,8 +43,9 @@ public class CartItem {
   }
 
   public void updateQuantity(int quantity) {
-    if(quantity > 9)
+    if (quantity < 0 || quantity > 9) {
       throw new CustomException(ErrorCode.CART_ITEM_QUANTITY_LIMIT);
+    }
     this.quantity = quantity;
   }
 

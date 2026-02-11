@@ -35,7 +35,10 @@ public class GlobalExceptionHandler {
     log.error("handleMethodArgumentNotValidException: {}", e.getMessage());
 
     // 에러 메시지 중 첫 번째 것을 가져옵니다 (예: "수량은 최대 9개까지만 담을 수 있습니다.")
-    String errorMessage = e.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
+    String errorMessage = e.getBindingResult().getFieldErrors().stream()
+        .findFirst()
+        .map(fieldError -> fieldError.getDefaultMessage())
+        .orElse(ErrorCode.INVALID_REQUEST.getMessage());
 
     // ErrorCode.INVALID_INPUT_VALUE(400)를 기본으로 사용하되, 메시지만 DTO에 설정한 것으로 교체
     ErrorResponse response = ErrorResponse.builder()

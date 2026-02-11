@@ -10,7 +10,6 @@ import shop.campustable.campustablebeclone.domain.cart.dto.CartItemResponse;
 import shop.campustable.campustablebeclone.domain.cart.dto.CartRequest;
 import shop.campustable.campustablebeclone.domain.cart.dto.CartResponse;
 import shop.campustable.campustablebeclone.domain.cart.entity.Cart;
-import shop.campustable.campustablebeclone.domain.cart.entity.CartItem;
 import shop.campustable.campustablebeclone.domain.cart.repository.CartRepository;
 import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
 import shop.campustable.campustablebeclone.domain.menu.repository.MenuRepository;
@@ -60,7 +59,7 @@ public class CartService {
         .orElseGet(() -> cartRepository.save(new Cart(user)));
 
     cart.addOrUpdateItem(menu, request.getQuantity());
-    log.info("addOrUpdateItem: 유저 {} - 메뉴 {} 를 {}개 담았습니다.", user, menu.getMenuName(), request.getQuantity());
+    log.info("addOrUpdateItem: 유저 {} - 메뉴 {} 를 {}개 담았습니다.", userId, menu.getMenuName(), request.getQuantity());
     return getMyCart();
   }
 
@@ -74,7 +73,7 @@ public class CartService {
           return new CustomException(ErrorCode.USER_NOT_FOUND);
         });
 
-    Cart cart = cartRepository.findByUser(user)
+    Cart cart = cartRepository.findByUserWithItems(user)
         .orElseThrow(() -> {
           log.warn("getMyCart: 유저 {}에게 cart가 존재하지 않습니다.", userId);
           return new CustomException(ErrorCode.CART_NOT_FOUND);
@@ -84,7 +83,7 @@ public class CartService {
         .map(cartItem -> CartItemResponse.from(
             cartItem,
             getFullUrl(cartItem.getMenu().getMenuUrl())
-            ))
+        ))
         .toList();
 
     int totalPrice = responses.stream()
@@ -97,12 +96,12 @@ public class CartService {
   public CartResponse deleteCartItem(Long cartItemId) {
     Long userId = SecurityUtil.getCurrentUserId();
     User user = userRepository.findById(userId)
-        .orElseThrow(()->{
+        .orElseThrow(() -> {
           log.warn("deleteCartItem: 유효하지 않은 user {}", userId);
           return new CustomException(ErrorCode.USER_NOT_FOUND);
         });
     Cart cart = cartRepository.findByUser(user)
-        .orElseThrow(()->{
+        .orElseThrow(() -> {
           log.warn("deleteCartItem: 유저 {}에게 cart가 존재하지 않습니다.", userId);
           return new CustomException(ErrorCode.CART_NOT_FOUND);
         });
@@ -110,16 +109,16 @@ public class CartService {
     return getMyCart();
   }
 
-  public void clearMyCart(){
+  public void clearMyCart() {
     Long userId = SecurityUtil.getCurrentUserId();
     User user = userRepository.findById(userId)
-        .orElseThrow(()->{
+        .orElseThrow(() -> {
           log.warn("clearCart: 유효하지 않은 user {}", userId);
           return new CustomException(ErrorCode.USER_NOT_FOUND);
         });
 
     Cart cart = cartRepository.findByUser(user)
-        .orElseThrow(()->{
+        .orElseThrow(() -> {
           log.warn("clearCart: 유저 {}에게 cart가 존재하지 않습니다.", userId);
           return new CustomException(ErrorCode.CART_NOT_FOUND);
         });
