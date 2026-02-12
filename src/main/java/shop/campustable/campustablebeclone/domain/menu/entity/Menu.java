@@ -21,6 +21,8 @@ import shop.campustable.campustablebeclone.domain.category.entity.Category;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuRequest;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuResponse;
 import shop.campustable.campustablebeclone.global.common.BaseTimeEntity;
+import shop.campustable.campustablebeclone.global.exception.CustomException;
+import shop.campustable.campustablebeclone.global.exception.ErrorCode;
 
 @Entity
 @Getter
@@ -70,6 +72,14 @@ public class Menu extends BaseTimeEntity {
     else if(request.getAvailable() != null){
       this.available = request.getAvailable();
     }
+  }
+
+  public void decreseStockQuantity(int quantity) {
+    int restStock =  this.stockQuantity - quantity;
+    if(restStock < 0) {
+      throw new CustomException(ErrorCode.MENU_OUT_OF_STOCK);
+    }
+    this.stockQuantity = restStock;
   }
 
 }

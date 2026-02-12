@@ -23,7 +23,7 @@ public class UserResponse {
   public static UserResponse from(User user) {
     return UserResponse.builder()
         .userName(user.getName())
-        .userId(user.getUserId())
+        .userId(user.getId())
         .role(user.getRole())
         .studentId(user.getStudentId())
         .build();

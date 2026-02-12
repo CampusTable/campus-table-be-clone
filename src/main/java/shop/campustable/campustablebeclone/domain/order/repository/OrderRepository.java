@@ -1,8 +1,13 @@
 package shop.campustable.campustablebeclone.domain.order.repository;
 
+import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import shop.campustable.campustablebeclone.domain.order.entity.Order;
+import shop.campustable.campustablebeclone.domain.user.entity.User;
 
-public interface OrderRepository extends JpaRepository<Order, Integer> {
+public interface OrderRepository extends JpaRepository<Order, Long> {
+
+  List<Order> findOrdersByUserId(Long id);
 
 }

@@ -1,6 +1,8 @@
 package shop.campustable.campustablebeclone.domain.order.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -11,6 +13,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
+import shop.campustable.campustablebeclone.global.exception.CustomException;
+import shop.campustable.campustablebeclone.global.exception.ErrorCode;
 
 @Entity
 @Getter
@@ -33,6 +37,11 @@ public class OrderItem {
   private int price;
   private int quantity;
 
+  private Long categoryId;
+
+  @Enumerated(EnumType.STRING)
+  private OrderStatus status;
+
   public void setOrder(Order order){
     this.order = order;
   }
@@ -43,10 +52,26 @@ public class OrderItem {
     this.menuName = menu.getMenuName();
     this.price = menu.getPrice();
     this.quantity = quantity;
+    this.status = OrderStatus.PREPARING;
+    this.categoryId = menu.getCategory().getId();
   }
 
   public int getSubtotal(){
     return price * quantity;
+  }
+
+  public void markAsReady(){
+    if(this.status != OrderStatus.PREPARING){
+      throw new CustomException(ErrorCode.INVALID_ORDER_STATUS);
+    }
+    this.status=OrderStatus.READY;
+  }
+
+  public void markAsCompleted(){
+    if(this.status != OrderStatus.READY){
+      throw new CustomException(ErrorCode.INVALID_ORDER_STATUS);
+    }
+    this.status=OrderStatus.COMPLETED;
   }
 
 }

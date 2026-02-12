@@ -7,11 +7,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.campustable.campustablebeclone.domain.cafeteria.entity.Cafeteria;
 import shop.campustable.campustablebeclone.domain.cafeteria.repository.CafeteriaRepository;
+import shop.campustable.campustablebeclone.domain.cart.dto.CartResponse;
 import shop.campustable.campustablebeclone.domain.cart.entity.Cart;
 import shop.campustable.campustablebeclone.domain.cart.repository.CartRepository;
+import shop.campustable.campustablebeclone.domain.category.repository.CategoryRepository;
 import shop.campustable.campustablebeclone.domain.order.dto.OrderResponse;
 import shop.campustable.campustablebeclone.domain.order.entity.Order;
 import shop.campustable.campustablebeclone.domain.order.entity.OrderItem;
+import shop.campustable.campustablebeclone.domain.order.entity.OrderStatus;
+import shop.campustable.campustablebeclone.domain.order.repository.OrderItemRepository;
 import shop.campustable.campustablebeclone.domain.order.repository.OrderRepository;
 import shop.campustable.campustablebeclone.domain.user.entity.User;
 import shop.campustable.campustablebeclone.domain.user.repository.UserRepository;
@@ -29,6 +33,8 @@ public class OrderService {
   private final UserRepository userRepository;
   private final CartRepository cartRepository;
   private final CafeteriaRepository cafeteriaRepository;
+  private final OrderItemRepository orderItemRepository;
+  private final CategoryRepository categoryRepository;
 
   public OrderResponse createOrder() {
     Long userId = SecurityUtil.getCurrentUserId();
@@ -45,10 +51,15 @@ public class OrderService {
         });
 
     List<OrderItem> orderItems = cart.getCartItems().stream()
-        .map(cartItem -> OrderItem.builder()
-            .menu(cartItem.getMenu())
-            .quantity(cartItem.getQuantity())
-            .build())
+        .map(cartItem -> {
+
+          cartItem.getMenu().decreseStockQuantity(cartItem.getQuantity());
+
+          return OrderItem.builder()
+              .menu(cartItem.getMenu())
+              .quantity(cartItem.getQuantity())
+              .build();
+        })
         .toList();
 
     Cafeteria cafeteria = cafeteriaRepository.findById(cart.getCafeteriaId())
@@ -63,12 +74,80 @@ public class OrderService {
         .orderItems(orderItems)
         .build();
 
-    Order savedOrder =  orderRepository.save(order);
+    Order savedOrder = orderRepository.save(order);
 
     cart.clearCart();
 
+    log.info("주문 생성 완료: 주문ID={}, 유저ID={}", savedOrder.getId(), userId);
     return OrderResponse.from(savedOrder);
 
+  }
+
+  public List<OrderResponse> getMyOrders() {
+    Long userId = SecurityUtil.getCurrentUserId();
+
+    List<Order> orders = orderRepository.findOrdersByUserId(userId);
+
+    return orders.stream()
+        .map(OrderResponse::from)
+        .toList();
+  }
+
+  public void markCategoryAsReady(Long orderId, Long categoryId) {
+    Order order = orderRepository.findById(orderId)
+        .orElseThrow(() -> {
+          log.warn("markCategoryAsReady: 주문이 존재하지 않습니다. {}", orderId);
+          return new CustomException(ErrorCode.ORDER_NOT_FOUND);
+        });
+    if (!categoryRepository.existsById(categoryId)) {
+      throw new CustomException(ErrorCode.CATEGORY_NOT_FOUND);
+    }
+
+    List<OrderItem> targetItems = order.getOrderItems().stream()
+        .filter(orderItem -> orderItem.getCategoryId().equals(categoryId))
+        .toList();
+
+    if (targetItems.isEmpty()) {
+      throw new CustomException(ErrorCode.ORDER_ITEM_NOT_FOUND);
+    }
+
+    targetItems.forEach(OrderItem::markAsReady);
+
+    boolean allReady = order.getOrderItems().stream()
+        .allMatch(orderItem -> orderItem.getStatus() == OrderStatus.READY ||
+                               orderItem.getStatus() == OrderStatus.COMPLETED);
+    if (allReady) {
+      order.markAsReady();
+    }
+
+  }
+
+  public void markCategoryAsCompleted(Long orderId, Long categoryId) {
+    Order order = orderRepository.findById(orderId)
+        .orElseThrow(() -> {
+          log.warn("markCategoryAsCompleted: 주문이 존재하지 않습니다. {}", orderId);
+          return new CustomException(ErrorCode.ORDER_NOT_FOUND);
+        });
+    if (!categoryRepository.existsById(categoryId)) {
+      throw new CustomException(ErrorCode.CATEGORY_NOT_FOUND);
+    }
+
+    List<OrderItem> targetItems = order.getOrderItems().stream()
+        .filter(orderItem -> orderItem.getCategoryId().equals(categoryId))
+        .toList();
+
+    if (targetItems.isEmpty()) {
+      throw new CustomException(ErrorCode.ORDER_ITEM_NOT_FOUND);
+    }
+
+    targetItems.forEach(OrderItem::markAsCompleted);
+
+    boolean allCompleted = order.getOrderItems().stream()
+        .allMatch(orderItem -> orderItem.getStatus() == OrderStatus.COMPLETED);
+
+    if (allCompleted) {
+      order.markAsCompleted();
+    }
   }
 
 }

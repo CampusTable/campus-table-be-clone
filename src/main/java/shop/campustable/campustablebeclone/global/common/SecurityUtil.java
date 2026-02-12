@@ -25,7 +25,7 @@ public class SecurityUtil {
     Object principal = authentication.getPrincipal();
 
     if(principal instanceof CustomUserDetails customUserDetails){
-      return customUserDetails.getUser().getUserId();
+      return customUserDetails.getUser().getId();
     }
 
     log.error("인증 정보 타입이 유효하지 않습니다.");

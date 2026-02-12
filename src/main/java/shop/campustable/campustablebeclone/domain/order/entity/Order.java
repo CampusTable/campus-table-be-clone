@@ -21,6 +21,8 @@ import lombok.NoArgsConstructor;
 import shop.campustable.campustablebeclone.domain.cafeteria.entity.Cafeteria;
 import shop.campustable.campustablebeclone.domain.user.entity.User;
 import shop.campustable.campustablebeclone.global.common.BaseTimeEntity;
+import shop.campustable.campustablebeclone.global.exception.CustomException;
+import shop.campustable.campustablebeclone.global.exception.ErrorCode;
 
 @Entity
 @Getter
@@ -53,7 +55,7 @@ public class Order extends BaseTimeEntity {
   public Order(User user, Cafeteria cafeteria, List<OrderItem> orderItems) {
     this.user = user;
     this.cafeteria = cafeteria;
-    this.status = OrderStatus.PENDING;
+    this.status = OrderStatus.PREPARING;
     if (orderItems != null) {
       orderItems.forEach(this::addOrderItem);
     }
@@ -69,6 +71,20 @@ public class Order extends BaseTimeEntity {
     return orderItems.stream()
         .mapToInt(OrderItem::getSubtotal)
         .sum();
+  }
+
+  public void markAsReady() {
+    if(this.status != OrderStatus.PREPARING){
+      throw new CustomException(ErrorCode.INVALID_ORDER_STATUS);
+    }
+    this.status = OrderStatus.READY;
+  }
+
+  public void markAsCompleted(){
+    if(this.status != OrderStatus.READY){
+      throw new CustomException(ErrorCode.INVALID_ORDER_STATUS);
+    }
+    this.status = OrderStatus.COMPLETED;
   }
 
 }
