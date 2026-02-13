@@ -40,7 +40,7 @@ public class Menu extends BaseTimeEntity {
   private String menuName;
 
   @Column(nullable = false)
-  private Integer price;
+  private int price;
 
   @Column(length = 500)
   @Setter
@@ -50,7 +50,7 @@ public class Menu extends BaseTimeEntity {
   private Boolean available;
 
   @Column(nullable = false)
-  private Integer stockQuantity;
+  private int stockQuantity;
 
   public void update(MenuRequest request) {
     if (request.getMenuName() != null && !request.getMenuName().isBlank()) {
