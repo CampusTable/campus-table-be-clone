@@ -1,5 +1,6 @@
 package shop.campustable.campustablebeclone.domain.order.service;
 
+import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +58,7 @@ public class OrderService {
     }
 
     List<OrderItem> orderItems = cart.getCartItems().stream()
+        .sorted(Comparator.comparing(cartItem -> cartItem.getMenu().getId()))
         .map(cartItem -> {
 
           Menu menu = menuRepository.findByIdForUpdate(cartItem.getMenu().getId())
