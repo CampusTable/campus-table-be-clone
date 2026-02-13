@@ -1,5 +1,6 @@
 package shop.campustable.campustablebeclone.domain.order.service;
 
+import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +11,8 @@ import shop.campustable.campustablebeclone.domain.cafeteria.repository.Cafeteria
 import shop.campustable.campustablebeclone.domain.cart.entity.Cart;
 import shop.campustable.campustablebeclone.domain.cart.repository.CartRepository;
 import shop.campustable.campustablebeclone.domain.category.repository.CategoryRepository;
+import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
+import shop.campustable.campustablebeclone.domain.menu.repository.MenuRepository;
 import shop.campustable.campustablebeclone.domain.order.dto.OrderResponse;
 import shop.campustable.campustablebeclone.domain.order.entity.Order;
 import shop.campustable.campustablebeclone.domain.order.entity.OrderItem;
@@ -32,8 +35,8 @@ public class OrderService {
   private final UserRepository userRepository;
   private final CartRepository cartRepository;
   private final CafeteriaRepository cafeteriaRepository;
-  private final OrderItemRepository orderItemRepository;
   private final CategoryRepository categoryRepository;
+  private final MenuRepository menuRepository;
 
   public OrderResponse createOrder() {
     Long userId = SecurityUtil.getCurrentUserId();
@@ -55,12 +58,16 @@ public class OrderService {
     }
 
     List<OrderItem> orderItems = cart.getCartItems().stream()
+        .sorted(Comparator.comparing(cartItem -> cartItem.getMenu().getId()))
         .map(cartItem -> {
 
-          cartItem.getMenu().decreaseStockQuantity(cartItem.getQuantity());
+          Menu menu = menuRepository.findByIdForUpdate(cartItem.getMenu().getId())
+              .orElseThrow(()->new  CustomException(ErrorCode.MENU_NOT_FOUND));
+
+          menu.decreaseStockQuantity(cartItem.getQuantity());
 
           return OrderItem.builder()
-              .menu(cartItem.getMenu())
+              .menu(menu)
               .quantity(cartItem.getQuantity())
               .build();
         })
@@ -104,6 +111,7 @@ public class OrderService {
           log.warn("markCategoryAsReady: 주문이 존재하지 않습니다. {}", orderId);
           return new CustomException(ErrorCode.ORDER_NOT_FOUND);
         });
+
     if (!categoryRepository.existsById(categoryId)) {
       throw new CustomException(ErrorCode.CATEGORY_NOT_FOUND);
     }
@@ -118,11 +126,10 @@ public class OrderService {
 
     targetItems.forEach(OrderItem::markAsReady);
 
-    boolean allReady = order.getOrderItems().stream()
-        .allMatch(orderItem -> orderItem.getStatus() == OrderStatus.READY ||
-                               orderItem.getStatus() == OrderStatus.COMPLETED);
-    if (allReady) {
+    try{
       order.markAsReady();
+    }catch(CustomException e){
+      log.info(e.getMessage());
     }
 
   }
@@ -147,11 +154,10 @@ public class OrderService {
 
     targetItems.forEach(OrderItem::markAsCompleted);
 
-    boolean allCompleted = order.getOrderItems().stream()
-        .allMatch(orderItem -> orderItem.getStatus() == OrderStatus.COMPLETED);
-
-    if (allCompleted) {
+    try{
       order.markAsCompleted();
+    }catch(CustomException e){
+      log.info(e.getMessage());
     }
   }
 
