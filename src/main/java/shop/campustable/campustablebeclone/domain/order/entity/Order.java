@@ -77,18 +77,26 @@ public class Order extends BaseTimeEntity {
         .sum();
   }
 
+  public boolean canMarkAsReady() {
+    return this.orderItems.stream()
+        .allMatch(orderItem ->
+            orderItem.getStatus() == OrderStatus.READY ||
+            orderItem.getStatus() == OrderStatus.COMPLETED);
+  }
+
+  public boolean canMarkAsComplete() {
+    return this.orderItems.stream()
+        .allMatch(orderItem ->
+            orderItem.getStatus() == OrderStatus.COMPLETED);
+  }
+
   public void markAsReady() {
 
     if (status == OrderStatus.READY) {
       return;
     }
 
-    boolean canReady = this.orderItems.stream()
-        .allMatch(orderItem ->
-            orderItem.getStatus().equals(OrderStatus.READY) ||
-            orderItem.getStatus().equals(OrderStatus.CANCELLED));
-
-    if(!canReady) {
+    if(!canMarkAsReady()) {
       throw new CustomException(ErrorCode.INVALID_ORDER_STATUS);
     }
 
@@ -105,10 +113,7 @@ public class Order extends BaseTimeEntity {
       return;
     }
 
-    boolean canComplete = this.orderItems.stream()
-        .allMatch(orderItem -> orderItem.getStatus().equals(OrderStatus.COMPLETED));
-
-    if(!canComplete) {
+    if(!canMarkAsComplete()) {
       throw new CustomException(ErrorCode.INVALID_ORDER_STATUS);
     }
 

@@ -126,10 +126,9 @@ public class OrderService {
 
     targetItems.forEach(OrderItem::markAsReady);
 
-    try{
+    if(order.canMarkAsReady()){
       order.markAsReady();
-    }catch(CustomException e){
-      log.info(e.getMessage());
+      log.info("주문이 READY상태로 변경 되었습니다.");
     }
 
   }
@@ -154,10 +153,9 @@ public class OrderService {
 
     targetItems.forEach(OrderItem::markAsCompleted);
 
-    try{
+    if(order.canMarkAsComplete()){
       order.markAsCompleted();
-    }catch(CustomException e){
-      log.info(e.getMessage());
+      log.info("주문이 COMPLETED상태로 변경 되었습니다.");
     }
   }
 
