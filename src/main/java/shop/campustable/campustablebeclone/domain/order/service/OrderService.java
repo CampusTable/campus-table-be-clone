@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.campustable.campustablebeclone.domain.cafeteria.entity.Cafeteria;
 import shop.campustable.campustablebeclone.domain.cafeteria.repository.CafeteriaRepository;
-import shop.campustable.campustablebeclone.domain.cart.dto.CartResponse;
 import shop.campustable.campustablebeclone.domain.cart.entity.Cart;
 import shop.campustable.campustablebeclone.domain.cart.repository.CartRepository;
 import shop.campustable.campustablebeclone.domain.category.repository.CategoryRepository;
@@ -50,10 +49,15 @@ public class OrderService {
           return new CustomException(ErrorCode.CART_NOT_FOUND);
         });
 
+    if(cart.getCartItems() == null || cart.getCartItems().isEmpty()) {
+      log.warn("createOrder: 장바구니가 비어있습니다.");
+      throw new CustomException(ErrorCode.CART_EMPTY);
+    }
+
     List<OrderItem> orderItems = cart.getCartItems().stream()
         .map(cartItem -> {
 
-          cartItem.getMenu().decreseStockQuantity(cartItem.getQuantity());
+          cartItem.getMenu().decreaseStockQuantity(cartItem.getQuantity());
 
           return OrderItem.builder()
               .menu(cartItem.getMenu())
@@ -83,10 +87,11 @@ public class OrderService {
 
   }
 
+  @Transactional(readOnly = true)
   public List<OrderResponse> getMyOrders() {
     Long userId = SecurityUtil.getCurrentUserId();
 
-    List<Order> orders = orderRepository.findOrdersByUserId(userId);
+    List<Order> orders = orderRepository.findOrdersWithItemsAndCafeteriaByUserId(userId);
 
     return orders.stream()
         .map(OrderResponse::from)
@@ -94,7 +99,7 @@ public class OrderService {
   }
 
   public void markCategoryAsReady(Long orderId, Long categoryId) {
-    Order order = orderRepository.findById(orderId)
+    Order order = orderRepository.findByIdWithForceIncrement(orderId)
         .orElseThrow(() -> {
           log.warn("markCategoryAsReady: 주문이 존재하지 않습니다. {}", orderId);
           return new CustomException(ErrorCode.ORDER_NOT_FOUND);
@@ -123,7 +128,7 @@ public class OrderService {
   }
 
   public void markCategoryAsCompleted(Long orderId, Long categoryId) {
-    Order order = orderRepository.findById(orderId)
+    Order order = orderRepository.findByIdWithForceIncrement(orderId)
         .orElseThrow(() -> {
           log.warn("markCategoryAsCompleted: 주문이 존재하지 않습니다. {}", orderId);
           return new CustomException(ErrorCode.ORDER_NOT_FOUND);

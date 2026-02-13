@@ -8,9 +8,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +16,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import shop.campustable.campustablebeclone.domain.category.entity.Category;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuRequest;
-import shop.campustable.campustablebeclone.domain.menu.dto.MenuResponse;
 import shop.campustable.campustablebeclone.global.common.BaseTimeEntity;
 import shop.campustable.campustablebeclone.global.exception.CustomException;
 import shop.campustable.campustablebeclone.global.exception.ErrorCode;
@@ -37,7 +33,7 @@ public class Menu extends BaseTimeEntity {
   private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "category_id",nullable = false)
+  @JoinColumn(name = "category_id", nullable = false)
   private Category category;
 
   @Column(nullable = false)
@@ -57,29 +53,31 @@ public class Menu extends BaseTimeEntity {
   private Integer stockQuantity;
 
   public void update(MenuRequest request) {
-    if(request.getMenuName() != null && !request.getMenuName().isBlank()) {
+    if (request.getMenuName() != null && !request.getMenuName().isBlank()) {
       this.menuName = request.getMenuName();
     }
-    if(request.getPrice() != null && request.getPrice() > 0) {
+    if (request.getPrice() != null && request.getPrice() > 0) {
       this.price = request.getPrice();
     }
-    if(request.getStockQuantity() != null &&  request.getStockQuantity() >=0) {
+    if (request.getStockQuantity() != null && request.getStockQuantity() >= 0) {
       this.stockQuantity = request.getStockQuantity();
     }
-    if(this.getStockQuantity() == 0 ) {
+    if (this.getStockQuantity() == 0) {
       this.available = false;
-    }
-    else if(request.getAvailable() != null){
+    } else if (request.getAvailable() != null) {
       this.available = request.getAvailable();
     }
   }
 
-  public void decreseStockQuantity(int quantity) {
-    int restStock =  this.stockQuantity - quantity;
-    if(restStock < 0) {
+  public void decreaseStockQuantity(int quantity) {
+    int restStock = this.stockQuantity - quantity;
+    if (restStock < 0) {
       throw new CustomException(ErrorCode.MENU_OUT_OF_STOCK);
     }
     this.stockQuantity = restStock;
+    if (this.stockQuantity == 0) {
+      this.available = false;
+    }
   }
 
 }

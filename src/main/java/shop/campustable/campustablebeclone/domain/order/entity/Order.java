@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
@@ -50,6 +51,9 @@ public class Order extends BaseTimeEntity {
   private List<OrderItem> orderItems = new ArrayList<>();
 
   private int totalPrice;
+
+  @Version
+  private Long version;
 
   @Builder
   public Order(User user, Cafeteria cafeteria, List<OrderItem> orderItems) {

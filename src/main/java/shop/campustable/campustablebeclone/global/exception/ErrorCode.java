@@ -74,6 +74,8 @@ public enum ErrorCode {
 
   CART_ITEM_QUANTITY_LIMIT(HttpStatus.BAD_REQUEST, "한 메뉴당 최대 9개까지만 담을 수 있습니다."),
 
+  CART_EMPTY(HttpStatus.BAD_REQUEST, "장바구니가 비어 있어 주문을 진행할 수 없습니다."),
+
   //ORDER
   ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 주문을 찾을 수 없습니다."),
 

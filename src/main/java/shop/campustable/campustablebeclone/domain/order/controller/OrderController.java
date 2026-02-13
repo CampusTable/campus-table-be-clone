@@ -30,9 +30,6 @@ public class OrderController {
     return ResponseEntity.ok(orderService.getMyOrders());
   }
 
-  @GetMapping("/orders/{order-id}")
-
-
   @PatchMapping("/admin/orders/{order-id}/categories/{category-id}/ready")
   public ResponseEntity<Void> markCategoryAsReady(
       @PathVariable(name = "order-id")Long orderId,
