@@ -117,7 +117,7 @@ public class OrderService {
     }
 
     List<OrderItem> targetItems = order.getOrderItems().stream()
-        .filter(orderItem -> orderItem.getCategoryId().equals(categoryId))
+        .filter(orderItem -> categoryId.equals(orderItem.getCategoryId()))
         .toList();
 
     if (targetItems.isEmpty()) {
@@ -144,7 +144,7 @@ public class OrderService {
     }
 
     List<OrderItem> targetItems = order.getOrderItems().stream()
-        .filter(orderItem -> orderItem.getCategoryId().equals(categoryId))
+        .filter(orderItem -> categoryId.equals(orderItem.getCategoryId()))
         .toList();
 
     if (targetItems.isEmpty()) {
