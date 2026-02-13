@@ -61,6 +61,11 @@ public class OrderItem {
   }
 
   public void markAsReady(){
+
+    if(status == OrderStatus.READY){
+      return;
+    }
+
     if(this.status != OrderStatus.PREPARING){
       throw new CustomException(ErrorCode.INVALID_ORDER_STATUS);
     }
@@ -68,6 +73,11 @@ public class OrderItem {
   }
 
   public void markAsCompleted(){
+
+    if(status == OrderStatus.COMPLETED){
+      return;
+    }
+
     if(this.status != OrderStatus.READY){
       throw new CustomException(ErrorCode.INVALID_ORDER_STATUS);
     }
