@@ -97,13 +97,17 @@ public class OrderService {
       TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
         @Override
         public void afterCommit() {
-          orderItems.forEach(orderItem -> {
-            String key = "cafeteria:" + cafeteria.getId()+":menu:rank";
-            stringRedisTemplate.opsForZSet().incrementScore(
-                key, orderItem.getMenu().getId().toString(), orderItem.getQuantity()
-            );
-          });
-          log.info("createOrder: Redis 랭킹 업데이트 완료");
+          try{
+            orderItems.forEach(orderItem -> {
+              String key = "cafeteria:" + cafeteria.getId() + ":menu:rank";
+              stringRedisTemplate.opsForZSet().incrementScore(
+                  key, orderItem.getMenu().getId().toString(), orderItem.getQuantity()
+              );
+            });
+            log.info("createOrder: Redis 랭킹 업데이트 완료");
+          }catch (Exception e){
+            log.warn("createOrder: Redis 랭킹 업데이트 실패: {}", e.getMessage());
+          }
         }
       });
     }
