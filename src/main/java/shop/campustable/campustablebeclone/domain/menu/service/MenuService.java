@@ -1,16 +1,27 @@
 package shop.campustable.campustablebeclone.domain.menu.service;
 
-import jakarta.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import shop.campustable.campustablebeclone.domain.cafeteria.entity.Cafeteria;
+import shop.campustable.campustablebeclone.domain.cafeteria.repository.CafeteriaRepository;
 import shop.campustable.campustablebeclone.domain.category.entity.Category;
 import shop.campustable.campustablebeclone.domain.category.repository.CategoryRepository;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuRequest;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuResponse;
+import shop.campustable.campustablebeclone.domain.menu.dto.TopMenuResponse;
 import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
 import shop.campustable.campustablebeclone.domain.menu.repository.MenuRepository;
 import shop.campustable.campustablebeclone.global.exception.CustomException;
@@ -26,6 +37,8 @@ public class MenuService {
   private final MenuRepository menuRepository;
   private final CategoryRepository categoryRepository;
   private final S3Service s3Service;
+  private final CafeteriaRepository cafeteriaRepository;
+  private final StringRedisTemplate stringRedisTemplate;
 
   @Value("${spring.cloud.aws.s3.domain}")
   private String s3Domain;
@@ -143,6 +156,58 @@ public class MenuService {
   private String uploadMenuImage(MultipartFile image, String cafeteriaName) {
     String dirName = "menu/" + cafeteriaName;
     return s3Service.uploadFile(image, dirName);
+  }
+
+  @Transactional(readOnly = true)
+  public List<TopMenuResponse> getTop3MenusByCafeteriaId(Long cafeteriaId) {
+
+    if (!cafeteriaRepository.existsById(cafeteriaId)) {
+      log.error("getTop3MenusByCafeteria: 유효하지 않은 cafeteriaId {}", cafeteriaId);
+      throw new CustomException(ErrorCode.CAFETERIA_NOT_FOUND);
+    }
+
+    String key = "cafeteria:" + cafeteriaId + ":menu:rank";
+
+    try{
+      Set<String> topMenus = stringRedisTemplate.opsForZSet().reverseRange(key, 0, 2);
+
+      if (topMenus == null || topMenus.isEmpty()) {
+        return List.of();
+      }
+
+      List<Long> topMenuIds = topMenus.stream()
+          .map(id -> {
+            try {
+              return Long.parseLong(id);
+            } catch (NumberFormatException e) {
+              return null;
+            }
+          })
+          .filter(Objects::nonNull)
+          .toList();
+
+      List<Menu> menus = menuRepository.findAllById(topMenuIds);
+
+      Map<Long, Menu> topMenusMap = menus.stream()
+          .collect(Collectors.toMap(Menu::getId, Function.identity()));
+
+      List<TopMenuResponse> responses = new ArrayList<>();
+
+      for (int i = 0; i < topMenuIds.size(); i++) {
+        Long topMenuId = topMenuIds.get(i);
+        Menu topMenu = topMenusMap.get(topMenuId);
+        if (topMenu != null) {
+          responses.add(TopMenuResponse.of((long) (i + 1), topMenu, getFullUrl(topMenu.getMenuUrl())));
+        }
+      }
+
+      return responses;
+    }catch(Exception e){
+      log.error("getTop3MenusByCafeteriaId: Redis 연결 실패로 랭킹을 불러올 수 없습니다: {}", e.getMessage());
+      return List.of();
+    }
+
+
   }
 
 }

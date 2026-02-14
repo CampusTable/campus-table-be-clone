@@ -4,8 +4,11 @@ import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import shop.campustable.campustablebeclone.domain.cafeteria.entity.Cafeteria;
 import shop.campustable.campustablebeclone.domain.cafeteria.repository.CafeteriaRepository;
 import shop.campustable.campustablebeclone.domain.cart.entity.Cart;
@@ -37,6 +40,7 @@ public class OrderService {
   private final CafeteriaRepository cafeteriaRepository;
   private final CategoryRepository categoryRepository;
   private final MenuRepository menuRepository;
+  private final StringRedisTemplate stringRedisTemplate;
 
   public OrderResponse createOrder() {
     Long userId = SecurityUtil.getCurrentUserId();
@@ -52,7 +56,7 @@ public class OrderService {
           return new CustomException(ErrorCode.CART_NOT_FOUND);
         });
 
-    if(cart.getCartItems() == null || cart.getCartItems().isEmpty()) {
+    if (cart.getCartItems() == null || cart.getCartItems().isEmpty()) {
       log.warn("createOrder: 장바구니가 비어있습니다.");
       throw new CustomException(ErrorCode.CART_EMPTY);
     }
@@ -62,7 +66,7 @@ public class OrderService {
         .map(cartItem -> {
 
           Menu menu = menuRepository.findByIdForUpdate(cartItem.getMenu().getId())
-              .orElseThrow(()->new  CustomException(ErrorCode.MENU_NOT_FOUND));
+              .orElseThrow(() -> new CustomException(ErrorCode.MENU_NOT_FOUND));
 
           menu.decreaseStockQuantity(cartItem.getQuantity());
 
@@ -88,6 +92,25 @@ public class OrderService {
     Order savedOrder = orderRepository.save(order);
 
     cart.clearCart();
+
+    if (TransactionSynchronizationManager.isActualTransactionActive()) {
+      TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+        @Override
+        public void afterCommit() {
+          try{
+            orderItems.forEach(orderItem -> {
+              String key = "cafeteria:" + cafeteria.getId() + ":menu:rank";
+              stringRedisTemplate.opsForZSet().incrementScore(
+                  key, orderItem.getMenu().getId().toString(), orderItem.getQuantity()
+              );
+            });
+            log.info("createOrder: Redis 랭킹 업데이트 완료");
+          }catch (Exception e){
+            log.warn("createOrder: Redis 랭킹 업데이트 실패: {}", e.getMessage());
+          }
+        }
+      });
+    }
 
     log.info("주문 생성 완료: 주문ID={}, 유저ID={}", savedOrder.getId(), userId);
     return OrderResponse.from(savedOrder);
@@ -126,7 +149,7 @@ public class OrderService {
 
     targetItems.forEach(OrderItem::markAsReady);
 
-    if(order.canMarkAsReady()){
+    if (order.canMarkAsReady()) {
       order.markAsReady();
       log.info("주문이 READY상태로 변경 되었습니다.");
     }
@@ -153,7 +176,7 @@ public class OrderService {
 
     targetItems.forEach(OrderItem::markAsCompleted);
 
-    if(order.canMarkAsComplete()){
+    if (order.canMarkAsComplete()) {
       order.markAsCompleted();
       log.info("주문이 COMPLETED상태로 변경 되었습니다.");
     }
