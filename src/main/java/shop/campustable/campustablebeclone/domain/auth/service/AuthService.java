@@ -80,7 +80,8 @@ public class AuthService {
         });
 
     if (!storedToken.getToken().equals(refreshToken)) {
-      log.error("reissue: DB의 토큰 정보와 일치하지 않는 토큰입니다.");
+      log.warn("reissue: 토큰 재사용 탐지. studentId={} 의 모든 세션을 무효화합니다.", storedToken.getStudentId());
+      refreshTokenRepository.deleteByStudentId(storedToken.getStudentId());
       throw new CustomException(ErrorCode.JWT_INVALID);
     }
 
@@ -89,8 +90,6 @@ public class AuthService {
           log.error("reissue: 유효하지 않은 User {}", storedToken.getStudentId());
           return new CustomException(ErrorCode.USER_NOT_FOUND);
         });
-
-    refreshTokenRepository.delete(storedToken);
 
     String newJti = UUID.randomUUID().toString();
     String newAccessToken = jwtTokenProvider.createAccessToken(user.getStudentId(), user.getRole().name(), newJti);
@@ -102,6 +101,8 @@ public class AuthService {
         .token(newRefreshToken)
         .expiration(jwtTokenProvider.getRefreshInMs() / 1000)
         .build());
+
+    refreshTokenRepository.delete(storedToken);
 
     return TokenResponse.builder()
         .accessToken(newAccessToken)
