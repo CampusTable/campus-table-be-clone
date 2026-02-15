@@ -151,7 +151,7 @@ public interface CartControllerDocs {
           content = @Content(schema = @Schema(implementation = CartResponse.class))),
       @ApiResponse(responseCode = "404", description = "USER_NOT_FOUND"),
       @ApiResponse(responseCode = "404", description = "CART_NOT_FOUND"),
-      @ApiResponse(responseCode = "404", description = "CART_ITEM_NOT_FOUND")
+      @ApiResponse(responseCode = "404", description = "USER_NOT_FOUND 또는 CART_NOT_FOUND 또는 CART_ITEM_NOT_FOUND")
   })
   ResponseEntity<CartResponse> deleteCartItem(
 

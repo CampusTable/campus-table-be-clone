@@ -166,7 +166,7 @@ public class MenuService {
 
     String key = "cafeteria:" + cafeteriaId + ":menu:rank";
 
-    try{
+    try {
       Set<String> topMenus = stringRedisTemplate.opsForZSet().reverseRange(key, 0, 2);
 
       if (topMenus == null || topMenus.isEmpty()) {
@@ -195,11 +195,11 @@ public class MenuService {
       for (Long topMenuId : topMenuIds) {
         Menu topMenu = topMenusMap.get(topMenuId);
         if (topMenu != null) {
-          responses.add(TopMenuResponse.of(rank,topMenu,getFullUrl(topMenu.getMenuUrl())));
+          responses.add(TopMenuResponse.of(rank++, topMenu, getFullUrl(topMenu.getMenuUrl())));
         }
       }
       return responses;
-    }catch(Exception e){
+    } catch (Exception e) {
       log.error("getTop3MenusByCafeteria: Redis 연결 실패로 랭킹을 불러올 수 없습니다: {}", e.getMessage());
       return List.of();
     }
