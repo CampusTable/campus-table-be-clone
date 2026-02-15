@@ -70,9 +70,10 @@ public class MenuController implements MenuControllerDocs {
     return ResponseEntity.ok(response);
   }
 
+  @Override
   @GetMapping("/cafeterias/{cafeteria-id}/top-menus")
   public ResponseEntity<List<TopMenuResponse>> getTop3MenusByCafeteria(@PathVariable(name = "cafeteria-id")Long cafeteriaId) {
-    return ResponseEntity.ok(menuService.getTop3MenusByCafeteriaId(cafeteriaId));
+    return ResponseEntity.ok(menuService.getTop3MenusByCafeteria(cafeteriaId));
   }
 
 }

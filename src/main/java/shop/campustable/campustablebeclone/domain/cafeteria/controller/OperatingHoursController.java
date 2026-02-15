@@ -15,10 +15,11 @@ import shop.campustable.campustablebeclone.domain.cafeteria.service.OperatingHou
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-public class OperatingHoursController {
+public class OperatingHoursController implements OperatingHoursControllerDocs{
 
   private final OperatingHoursService operatingHoursService;
 
+  @Override
   @PostMapping("/admin/cafeterias/{cafeteria-id}/operating-hours")
   public ResponseEntity<Void> saveOperatingHours(
       @PathVariable(name = "cafeteria-id")Long cafeteriaId,
