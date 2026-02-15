@@ -19,28 +19,32 @@ import shop.campustable.campustablebeclone.domain.cafeteria.service.CafeteriaSer
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-public class CafeteriaController {
+public class CafeteriaController implements CafeteriaControllerDocs{
 
   private final CafeteriaService cafeteriaService;
 
+  @Override
   @PostMapping("/admin/cafeterias")
   public ResponseEntity<CafeteriaResponse> createCafeteria(@RequestBody CafeteriaRequest request) {
       CafeteriaResponse response = cafeteriaService.createCafeteria(request);
       return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
+  @Override
   @GetMapping("/cafeterias")
   public ResponseEntity<List<CafeteriaResponse>> getAllCafeterias() {
     List<CafeteriaResponse> response = cafeteriaService.getAllCafeterias();
     return ResponseEntity.ok(response);
   }
 
+  @Override
   @GetMapping("/cafeterias/{cafeteria-id}")
   public ResponseEntity<CafeteriaResponse> getCafeteriaById(@PathVariable("cafeteria-id") Long cafeteriaId) {
     CafeteriaResponse response = cafeteriaService.getCafeteriaById(cafeteriaId);
     return ResponseEntity.ok(response);
   }
 
+  @Override
   @PatchMapping("/admin/cafeterias/{cafeteria-id}")
   public ResponseEntity<CafeteriaResponse> updateCafeteria(@RequestBody CafeteriaRequest request,@PathVariable("cafeteria-id") Long cafeteriaId) {
     CafeteriaResponse response = cafeteriaService.updateCafeteria(request, cafeteriaId);

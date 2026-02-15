@@ -159,7 +159,7 @@ public class MenuService {
   }
 
   @Transactional(readOnly = true)
-  public List<TopMenuResponse> getTop3MenusByCafeteriaId(Long cafeteriaId) {
+  public List<TopMenuResponse> getTop3MenusByCafeteria(Long cafeteriaId) {
 
     if (!cafeteriaRepository.existsById(cafeteriaId)) {
       log.error("getTop3MenusByCafeteria: 유효하지 않은 cafeteriaId {}", cafeteriaId);
@@ -202,7 +202,7 @@ public class MenuService {
       }
       return responses;
     }catch(Exception e){
-      log.error("getTop3MenusByCafeteriaId: Redis 연결 실패로 랭킹을 불러올 수 없습니다: {}", e.getMessage());
+      log.error("getTop3MenusByCafeteria: Redis 연결 실패로 랭킹을 불러올 수 없습니다: {}", e.getMessage());
       return List.of();
     }
 

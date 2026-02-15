@@ -17,20 +17,23 @@ import shop.campustable.campustablebeclone.domain.order.service.OrderService;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
-public class OrderController {
+public class OrderController implements OrderControllerDocs {
 
   private final OrderService orderService;
 
+  @Override
   @PostMapping("/orders")
   public ResponseEntity<OrderResponse> createOrder(){
     return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder());
   }
 
+  @Override
   @GetMapping("/orders")
   public ResponseEntity<List<OrderResponse>> getMyOrders(){
     return ResponseEntity.ok(orderService.getMyOrders());
   }
 
+  @Override
   @PreAuthorize("hasAuthority('ADMIN')")
   @PatchMapping("/admin/orders/{order-id}/categories/{category-id}/ready")
   public ResponseEntity<Void> markCategoryAsReady(
@@ -41,6 +44,7 @@ public class OrderController {
     return ResponseEntity.ok().build();
   }
 
+  @Override
   @PreAuthorize("hasAuthority('ADMIN')")
   @PatchMapping("/admin/orders/{order-id}/categories/{category-id}/complete")
   public ResponseEntity<Void> markCategoryAsCompleted(
