@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuRequest;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuResponse;
+import shop.campustable.campustablebeclone.domain.menu.dto.TopMenuResponse;
 import shop.campustable.campustablebeclone.domain.menu.service.MenuService;
 
 @RestController
@@ -67,6 +68,12 @@ public class MenuController implements MenuControllerDocs {
       @ModelAttribute MenuRequest request) {
     MenuResponse response = menuService.updateMenu(menuId, request,request.getImage());
     return ResponseEntity.ok(response);
+  }
+
+  @Override
+  @GetMapping("/cafeterias/{cafeteria-id}/top-menus")
+  public ResponseEntity<List<TopMenuResponse>> getTop3MenusByCafeteria(@PathVariable(name = "cafeteria-id")Long cafeteriaId) {
+    return ResponseEntity.ok(menuService.getTop3MenusByCafeteria(cafeteriaId));
   }
 
 }
