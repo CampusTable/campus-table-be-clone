@@ -67,7 +67,7 @@ public class AuthService {
     try {
       jwtTokenProvider.validateToken(refreshToken);
     } catch (Exception e) {
-      log.error("reissue: 유효하지 않은 Refresh Token입니다.");
+      log.error("reissue: 유효하지 않은 Refresh Token입니다. {}", e.getMessage());
       throw new CustomException(ErrorCode.JWT_INVALID);
     }
 
