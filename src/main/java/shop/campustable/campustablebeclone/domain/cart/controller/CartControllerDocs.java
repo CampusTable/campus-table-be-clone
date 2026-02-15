@@ -25,30 +25,30 @@ public interface CartControllerDocs {
   @Operation(
       summary = "장바구니 아이템 추가 또는 수량 수정",
       description = """
-          ### 📌 기능 설명
-          - 메뉴를 장바구니에 추가합니다.
-          - 이미 존재하는 메뉴인 경우 수량을 수정합니다.
-          - 수량은 0~9 사이 값만 허용됩니다.
-          
-          ---
-          ### 📥 Request Body
-          - `menuId` (Long, required)
-          - `quantity` (Integer, required)
-            - 최소 0
-            - 최대 9
-          
-          ---
-          ### 📤 Response
-          최신 CartResponse 반환
-          
-          ---
-          ### ❗ 예외 처리
-          - 400 BAD_REQUEST
-            - Validation 실패
-          - 404 NOT_FOUND
-            - USER_NOT_FOUND
-            - MENU_NOT_FOUND
-          """
+                ### 📌 기능 설명
+                - 메뉴를 장바구니에 추가합니다.
+                - 이미 존재하는 메뉴인 경우 수량을 수정합니다.
+                - 수량은 0~9 사이 값만 허용됩니다.
+
+                ---
+                ### 📥 Request Body
+                - `menuId` (Long, required)
+                - `quantity` (Integer, required)
+                  - 최소 0
+                  - 최대 9
+
+                ---
+                ### 📤 Response
+                최신 CartResponse 반환
+
+                ---
+                ### ❗ 예외 처리
+                - 400 BAD_REQUEST
+                  - Validation 실패
+                - 404 NOT_FOUND
+                  - USER_NOT_FOUND
+                  - MENU_NOT_FOUND
+                """
   )
   @ApiResponses({
       @ApiResponse(responseCode = "201", description = "장바구니 추가/수정 성공",
@@ -60,6 +60,7 @@ public interface CartControllerDocs {
       @RequestBody CartItemRequest request
   );
 
+
   // ==========================================================
   // 2. 내 장바구니 조회
   // ==========================================================
@@ -67,20 +68,20 @@ public interface CartControllerDocs {
   @Operation(
       summary = "내 장바구니 조회",
       description = """
-          ### 📌 기능 설명
-          로그인 사용자의 장바구니를 조회합니다.
-          
-          - 장바구니가 없거나 비어있을 경우:
-            - cartId: null
-            - cafeteriaId: null
-            - cartItems: []
-            - totalPrice: 0
-          
-          ---
-          ### ❗ 예외 처리
-          - 404 NOT_FOUND
-            - USER_NOT_FOUND
-          """
+                ### 📌 기능 설명
+                로그인 사용자의 장바구니를 조회합니다.
+
+                - 장바구니가 없거나 비어있을 경우:
+                  - cartId: null
+                  - cafeteriaId: null
+                  - cartItems: []
+                  - totalPrice: 0
+
+                ---
+                ### ❗ 예외 처리
+                - 404 NOT_FOUND
+                  - USER_NOT_FOUND
+                """
   )
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "조회 성공",
@@ -89,6 +90,7 @@ public interface CartControllerDocs {
   })
   ResponseEntity<CartResponse> getMyCart();
 
+
   // ==========================================================
   // 3. 장바구니 전체 비우기
   // ==========================================================
@@ -96,20 +98,20 @@ public interface CartControllerDocs {
   @Operation(
       summary = "장바구니 전체 비우기",
       description = """
-          ### 📌 기능 설명
-          로그인 사용자의 장바구니를 모두 삭제합니다.
-          
-          ---
-          ### 📤 Response
-          - 204 NO_CONTENT
-          - Response Body 없음
-          
-          ---
-          ### ❗ 예외 처리
-          - 404 NOT_FOUND
-            - USER_NOT_FOUND
-            - CART_NOT_FOUND
-          """
+                ### 📌 기능 설명
+                로그인 사용자의 장바구니를 모두 삭제합니다.
+
+                ---
+                ### 📤 Response
+                - 204 NO_CONTENT
+                - Response Body 없음
+
+                ---
+                ### ❗ 예외 처리
+                - 404 NOT_FOUND
+                  - USER_NOT_FOUND
+                  - CART_NOT_FOUND
+                """
   )
   @ApiResponses({
       @ApiResponse(responseCode = "204", description = "장바구니 비우기 성공"),
