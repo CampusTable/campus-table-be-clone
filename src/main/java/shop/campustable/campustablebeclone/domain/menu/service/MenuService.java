@@ -193,14 +193,13 @@ public class MenuService {
 
       List<TopMenuResponse> responses = new ArrayList<>();
 
-      for (int i = 0; i < topMenuIds.size(); i++) {
-        Long topMenuId = topMenuIds.get(i);
+      long rank = 1;
+      for (Long topMenuId : topMenuIds) {
         Menu topMenu = topMenusMap.get(topMenuId);
         if (topMenu != null) {
-          responses.add(TopMenuResponse.of((long) (i + 1), topMenu, getFullUrl(topMenu.getMenuUrl())));
+          responses.add(TopMenuResponse.of(rank,topMenu,getFullUrl(topMenu.getMenuUrl())));
         }
       }
-
       return responses;
     }catch(Exception e){
       log.error("getTop3MenusByCafeteriaId: Redis 연결 실패로 랭킹을 불러올 수 없습니다: {}", e.getMessage());
