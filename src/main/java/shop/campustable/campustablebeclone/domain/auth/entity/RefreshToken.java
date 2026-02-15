@@ -1,33 +1,33 @@
 package shop.campustable.campustablebeclone.domain.auth.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.TimeToLive;
+import org.springframework.data.redis.core.index.Indexed;
 
-@Entity
-@Table(name = "refresh_token")
+
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@RedisHash(value = "refreshToken")
 public class RefreshToken {
 
   @Id
+  private String jti;
+
+  @Indexed
   private Long studentId;
 
-  @Column(name = "token", nullable = false)
   private String token;
 
-  @Column(name = "expiration")
+  @TimeToLive
   private Long expiration;
 
-  public void updateToken(String newtoken){
-    this.token = newtoken;
+  @Builder
+  public RefreshToken(String jti, Long studentId, String token, Long expiration) {
+    this.jti = jti;
+    this.studentId = studentId;
+    this.token = token;
+    this.expiration = expiration;
   }
-
 }
