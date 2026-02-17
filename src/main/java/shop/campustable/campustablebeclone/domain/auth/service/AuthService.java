@@ -79,34 +79,38 @@ public class AuthService {
     String jti = jwtTokenProvider.getJti(refreshToken);
     String redisKey = "refreshToken:" + jti;
 
-    // KEYS[1]: "refreshToken:{jti}"
-    // ARGV[1]: 클라이언트가 보낸 토큰 값
+    // KEYS[1]: 메인데이터 키 "refreshToken:{jti}"
+    // ARGV[1]: 비교할 토큰 값
+    // ARGV[2]: 삭제할 JTI 값 (인덱스에서 지우기 위해 필요)
     // 1: 성공 (삭제됨)
     // -1: 키가 없음 (이미 지워짐/로그아웃/만료)
     // -2: 키는 있는데 토큰 값이 다름 (재사용 탐지/해킹 위험)
     String script =
-        "if redis.call('EXISTS', KEYS[1]) == 0 then " +
-        "    return -1 " +
-        "end " +
-        "if redis.call('HGET', KEYS[1], 'token') == ARGV[1] then " +
-        "    return redis.call('DEL', KEYS[1]) " +
+        "local val = redis.call('HGET', KEYS[1], 'token') " +
+        "if not val then return -1 end " + // 1. 아예 없으면 -1 (만료/로그아웃)
+        "if val == ARGV[1] then " +
+        "    local studentId = redis.call('HGET', KEYS[1], 'studentId') " +
+        "    if studentId then " +
+        "        redis.call('SREM', 'refreshToken:studentId:' .. studentId, ARGV[2]) " + // 2. 보조 인덱스 정리
+        "    end " +
+        "    return redis.call('DEL', KEYS[1]) " + // 3. 메인 데이터 삭제
         "else " +
-        "    return -2 " +
+        "    return -2 " + // 4. 값은 있는데 다르면 -2 (재사용 탐지)
         "end";
 
     Long result = stringRedisTemplate.execute(
         new DefaultRedisScript<>(script, Long.class),
         Collections.singletonList(redisKey),
-        refreshToken
+        refreshToken,
+        jti
     );
 
-
     if (result == null || result.equals(-1L)) {
-      log.error("reissue 실패: 이미 로그아웃 되었거나 만료된 세션입니다. jti={}", jti);
+      log.error("reissue: 이미 로그아웃 되었거나 만료된 세션입니다. jti={}", jti);
       throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
     }
 
-    if(result.equals(-2L)) {
+    if (result.equals(-2L)) {
       log.warn("reissue: 토큰 재사용 탐지. studentId={} 의 모든 세션을 무효화합니다.", jwtTokenProvider.getStudentId(refreshToken));
       refreshTokenRepository.deleteByStudentId(jwtTokenProvider.getStudentId(refreshToken));
       throw new CustomException(ErrorCode.JWT_INVALID);
