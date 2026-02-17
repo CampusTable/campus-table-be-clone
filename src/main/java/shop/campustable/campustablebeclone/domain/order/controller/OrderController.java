@@ -1,7 +1,10 @@
 package shop.campustable.campustablebeclone.domain.order.controller;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,8 +32,9 @@ public class OrderController implements OrderControllerDocs {
 
   @Override
   @GetMapping("/orders")
-  public ResponseEntity<List<OrderResponse>> getMyOrders(){
-    return ResponseEntity.ok(orderService.getMyOrders());
+  public ResponseEntity<Page<OrderResponse>> getMyOrders(
+      @PageableDefault(size = 10, sort = "id", direction = Direction.DESC) Pageable pageable){
+    return ResponseEntity.ok(orderService.getMyOrders(pageable));
   }
 
   @Override

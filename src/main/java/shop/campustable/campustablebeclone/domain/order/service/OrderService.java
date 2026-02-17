@@ -4,6 +4,8 @@ import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -118,14 +120,12 @@ public class OrderService {
   }
 
   @Transactional(readOnly = true)
-  public List<OrderResponse> getMyOrders() {
+  public Page<OrderResponse> getMyOrders(Pageable pageable) {
     Long userId = SecurityUtil.getCurrentUserId();
 
-    List<Order> orders = orderRepository.findOrdersWithItemsAndCafeteriaByUserId(userId);
+    Page<Order> orders = orderRepository.findOrdersWithCafeteriaByUserId(userId,pageable);
 
-    return orders.stream()
-        .map(OrderResponse::from)
-        .toList();
+    return orders.map(OrderResponse::from);
   }
 
   public void markCategoryAsReady(Long orderId, Long categoryId) {
