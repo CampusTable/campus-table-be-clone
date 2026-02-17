@@ -3,6 +3,8 @@ package shop.campustable.campustablebeclone.domain.order.repository;
 import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -16,10 +18,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   @Query("select o from Order o where o.id = :id")
   Optional<Order> findByIdWithForceIncrement(@Param("id") Long id);
 
-  @Query("SELECT DISTINCT o FROM Order o " +
-         "JOIN FETCH o.cafeteria " +
-         "JOIN FETCH o.orderItems " +
-         "WHERE o.user.id = :userId")
-  List<Order> findOrdersWithItemsAndCafeteriaByUserId(@Param("userId") Long userId);
+  @Query(value = "SELECT o FROM Order o " +
+                 "JOIN FETCH o.cafeteria " +
+                 "WHERE o.user.id = :userId",
+      countQuery = "SELECT count(o) FROM Order o WHERE o.user.id = :userId")
+  Page<Order> findOrdersWithCafeteriaByUserId(@Param("userId") Long userId, Pageable pageable);
 
 }

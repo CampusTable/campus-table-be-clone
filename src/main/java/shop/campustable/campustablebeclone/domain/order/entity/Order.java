@@ -19,6 +19,7 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import shop.campustable.campustablebeclone.domain.cafeteria.entity.Cafeteria;
 import shop.campustable.campustablebeclone.domain.user.entity.User;
 import shop.campustable.campustablebeclone.global.common.BaseTimeEntity;
@@ -47,6 +48,7 @@ public class Order extends BaseTimeEntity {
   @Enumerated(EnumType.STRING)
   private OrderStatus status;
 
+  @BatchSize(size = 100)
   @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<OrderItem> orderItems = new ArrayList<>();
 
