@@ -123,7 +123,7 @@ public class OrderService {
   public Page<OrderResponse> getMyOrders(Pageable pageable) {
     Long userId = SecurityUtil.getCurrentUserId();
 
-    Page<Order> orders = orderRepository.findOrdersWithItemsAndCafeteriaByUserId(userId,pageable);
+    Page<Order> orders = orderRepository.findOrdersWithCafeteriaByUserId(userId,pageable);
 
     return orders.map(OrderResponse::from);
   }

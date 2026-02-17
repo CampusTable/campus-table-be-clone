@@ -18,10 +18,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   @Query("select o from Order o where o.id = :id")
   Optional<Order> findByIdWithForceIncrement(@Param("id") Long id);
 
-  @Query(value = "SELECT DISTINCT o FROM Order o " +
-                 "JOIN FETCH o.cafeteria " + // 1:1 관계는 Fetch Join 해도 페이징 가능!
+  @Query(value = "SELECT o FROM Order o " +
+                 "JOIN FETCH o.cafeteria " +
                  "WHERE o.user.id = :userId",
       countQuery = "SELECT count(o) FROM Order o WHERE o.user.id = :userId")
-  Page<Order> findOrdersWithItemsAndCafeteriaByUserId(@Param("userId") Long userId, Pageable pageable);
+  Page<Order> findOrdersWithCafeteriaByUserId(@Param("userId") Long userId, Pageable pageable);
 
 }
