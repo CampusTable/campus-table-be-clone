@@ -101,12 +101,12 @@ public class AuthService {
     );
 
 
-    if (result == null || result == -1) {
+    if (result == null || result.equals(-1L)) {
       log.error("reissue 실패: 이미 로그아웃 되었거나 만료된 세션입니다. jti={}", jti);
       throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
     }
 
-    if(result == -2) {
+    if(result.equals(-2L)) {
       log.warn("reissue: 토큰 재사용 탐지. studentId={} 의 모든 세션을 무효화합니다.", jwtTokenProvider.getStudentId(refreshToken));
       refreshTokenRepository.deleteByStudentId(jwtTokenProvider.getStudentId(refreshToken));
       throw new CustomException(ErrorCode.JWT_INVALID);
