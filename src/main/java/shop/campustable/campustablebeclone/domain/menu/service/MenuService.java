@@ -75,12 +75,12 @@ public class MenuService {
     return MenuResponse.from(menu, getFullUrl(menu.getMenuUrl()));
   }
 
+  /**
+   * 메뉴 전체 찾기
+   */
   public List<MenuResponse> getAllMenus() {
 
-    List<Menu> menus = menuRepository.findAll();
-    List<MenuResponse> responses = menus.stream()
-        .map(menu -> MenuResponse.from(menu, getFullUrl(menu.getMenuUrl())))
-        .toList();
+    List<MenuResponse> responses = menuRepository.findAllMenuResponses();
     return responses;
 
   }
@@ -145,7 +145,7 @@ public class MenuService {
 
     }
 
-    menu.update(request);
+    menu.update(request);//dto 알면 안좋음
 
     return MenuResponse.from(menu, getFullUrl(menu.getMenuUrl()));
 

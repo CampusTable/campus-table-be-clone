@@ -23,7 +23,7 @@ import shop.campustable.campustablebeclone.global.exception.ErrorResponse;
 
 @Slf4j
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter extends OncePerRequestFilter { //주석 쓰기
 
   private final JwtTokenProvider jwtTokenProvider;
   private final ObjectMapper objectMapper;

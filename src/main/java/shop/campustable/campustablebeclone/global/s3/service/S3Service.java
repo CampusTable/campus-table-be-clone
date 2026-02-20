@@ -42,7 +42,7 @@ public class S3Service {
       throw new CustomException(ErrorCode.INVALID_FILE_REQUEST);
     }
 
-    String contentType = file.getContentType();
+    String contentType = file.getContentType();// 
     if (contentType == null || !contentType.startsWith("image/")) {
       log.error("이미지 파일만 업로드 가능합니다. contentType: {}", contentType);
       throw new CustomException(ErrorCode.INVALID_FILE_TYPE);
