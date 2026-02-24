@@ -24,7 +24,7 @@ import shop.campustable.campustablebeclone.global.exception.ErrorCode;
 @Slf4j
 @Transactional
 @RequiredArgsConstructor
-public class AuthService {
+public class  AuthService {
 
   private final UserRepository userRepository;
   private final SejongPortalLoginService sejongPortalLoginService;

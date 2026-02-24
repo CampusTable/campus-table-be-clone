@@ -29,15 +29,19 @@ public class SecurityConfig {
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
     JwtAuthenticationFilter jwtAuthenticationFilter =
-        new JwtAuthenticationFilter(jwtTokenProvider,objectMapper);
+        new JwtAuthenticationFilter(jwtTokenProvider,objectMapper); // 필터 생성
 
     http
         .csrf(AbstractHttpConfigurer::disable)
+        // CSRF 공격 방지 기능 끔
+        // REST API는 보통 토큰 쓰기 땜에 보통 비활성화
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        // 세션 정책 STATELESS
+        // 서버에 세션 저장 x , 모든 인증 토큰(JWT)로 하겠다
 
         .exceptionHandling(handling -> handling
-            .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-            .accessDeniedHandler(customAccessDeniedHandler))
+            .authenticationEntryPoint(jwtAuthenticationEntryPoint) // 로그인 안했을 경우
+            .accessDeniedHandler(customAccessDeniedHandler)) // 권환이 없을 경우
 
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/api/auth/**").permitAll()
@@ -50,9 +54,11 @@ public class SecurityConfig {
             .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
             .requestMatchers("/api/user/**").hasAnyAuthority("USER", "ADMIN")
             .requestMatchers("/error").permitAll()
-            .anyRequest().authenticated())
+            .anyRequest().authenticated()) // 나머지 요청은 로그인을 해야만 ㄱㄴ
 
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+    // JWT 필터를 시큐리티 기본 로그인 필터 (UsernamePasswordAuthenticationFilter) 보다 앞에 배치
+    // == 아이디/비번 찾기 전에 토큰이 있는지 부터 검사
 
     return http.build();
   }
