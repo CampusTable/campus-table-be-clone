@@ -78,13 +78,15 @@ public class MenuService {
   /**
    * 메뉴 전체 찾기
    */
+  @Transactional(readOnly = true)
   public List<MenuResponse> getAllMenus() {
 
-    List<MenuResponse> responses = menuRepository.findAllMenuResponses();
-    return responses;
-
+    return menuRepository.findAllWithCategory().stream()
+        .map(menu-> MenuResponse.from(menu, getFullUrl(menu.getMenuUrl())))
+        .toList();
   }
 
+  @Transactional(readOnly = true)
   public List<MenuResponse> getMenusByCategory(Long categoryId) {
 
     Category category = categoryRepository.findById(categoryId)
@@ -100,6 +102,7 @@ public class MenuService {
         .toList();
   }
 
+  @Transactional(readOnly = true)
   public MenuResponse getMenuById(Long menuId) {
 
     Menu menu = menuRepository.findById(menuId)
@@ -145,7 +148,7 @@ public class MenuService {
 
     }
 
-    menu.update(request);//dto 알면 안좋음
+    menu.update(request.getMenuName(),request.getPrice(),request.getStockQuantity(),request.getAvailable());
 
     return MenuResponse.from(menu, getFullUrl(menu.getMenuUrl()));
 
@@ -203,8 +206,6 @@ public class MenuService {
       log.error("getTop3MenusByCafeteria: Redis 연결 실패로 랭킹을 불러올 수 없습니다: {}", e.getMessage());
       return List.of();
     }
-
-
   }
 
 }

@@ -2,6 +2,8 @@ package shop.campustable.campustablebeclone.domain.order.service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -14,6 +16,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import shop.campustable.campustablebeclone.domain.cafeteria.entity.Cafeteria;
 import shop.campustable.campustablebeclone.domain.cafeteria.repository.CafeteriaRepository;
 import shop.campustable.campustablebeclone.domain.cart.entity.Cart;
+import shop.campustable.campustablebeclone.domain.cart.repository.CartItemRepository;
 import shop.campustable.campustablebeclone.domain.cart.repository.CartRepository;
 import shop.campustable.campustablebeclone.domain.category.repository.CategoryRepository;
 import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
@@ -39,20 +42,18 @@ public class OrderService {
   private final OrderRepository orderRepository;
   private final UserRepository userRepository;
   private final CartRepository cartRepository;
+  private final OrderItemRepository orderItemRepository;
   private final CafeteriaRepository cafeteriaRepository;
   private final CategoryRepository categoryRepository;
   private final MenuRepository menuRepository;
   private final StringRedisTemplate stringRedisTemplate;
+  private final CartItemRepository cartItemRepository;
 
   public OrderResponse createOrder() {
     Long userId = SecurityUtil.getCurrentUserId();
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> {
-          log.warn("createOrder: 유효하지 않은 user {}", userId);
-          return new CustomException(ErrorCode.USER_NOT_FOUND);
-        });
+    User user = userRepository.getReferenceById(userId);
 
-    Cart cart = cartRepository.findByUserWithItems(user)
+    Cart cart = cartRepository.findCartForCheckout(user)
         .orElseThrow(() -> {
           log.warn("createOrder: 유저 {}에게 cart가 존재하지 않습니다.", userId);
           return new CustomException(ErrorCode.CART_NOT_FOUND);
@@ -63,13 +64,24 @@ public class OrderService {
       throw new CustomException(ErrorCode.CART_EMPTY);
     }
 
+    List<Long> menuIds = cart.getCartItems().stream()
+        .map(cartItem -> cartItem.getMenu().getId())
+        .toList();
+
+    List<Menu> menus = menuRepository.findAllByIdsForUpdate(menuIds);
+
+    Map<Long, Menu> menuMap = menus.stream()
+        .collect(Collectors.toMap(Menu::getId, menu -> menu));
+
     List<OrderItem> orderItems = cart.getCartItems().stream()
         .sorted(Comparator.comparing(cartItem -> cartItem.getMenu().getId()))
         .map(cartItem -> {
 
-          Menu menu = menuRepository.findByIdForUpdate(cartItem.getMenu().getId())
-              .orElseThrow(() -> new CustomException(ErrorCode.MENU_NOT_FOUND));
-
+          Menu menu = menuMap.get(cartItem.getMenu().getId());
+          if(menu == null) {
+            log.warn("createOrder: 메뉴가 존재하지 않습니다. menuId={}", cartItem.getMenu().getId());
+            throw new CustomException(ErrorCode.MENU_NOT_FOUND);
+          }
           menu.decreaseStockQuantity(cartItem.getQuantity());
 
           return OrderItem.builder()
@@ -93,7 +105,9 @@ public class OrderService {
 
     Order savedOrder = orderRepository.save(order);
 
-    cart.clearCart();
+    cartItemRepository.deleteAllByCart(cart);
+    cart.resetCafeteriaId();
+
 
     if (TransactionSynchronizationManager.isActualTransactionActive()) {
       TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -126,6 +140,16 @@ public class OrderService {
     Page<Order> orders = orderRepository.findOrdersWithCafeteriaByUserId(userId,pageable);
 
     return orders.map(OrderResponse::from);
+  }
+
+  @Transactional(readOnly = true)
+  public OrderResponse getOrderById(Long orderId){
+    Order order = orderRepository.findByIdWithDetails(orderId)
+        .orElseThrow(() -> {
+          log.warn("getOrderById: 주문이 존재하지 않습니다. {}", orderId);
+          return new CustomException(ErrorCode.ORDER_NOT_FOUND);
+        });
+    return OrderResponse.from(order);
   }
 
   public void markCategoryAsReady(Long orderId, Long categoryId) {

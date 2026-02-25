@@ -10,10 +10,20 @@ import shop.campustable.campustablebeclone.domain.user.entity.User;
 public interface CartRepository extends JpaRepository<Cart, Long> {
 
   @Query("SELECT DISTINCT c FROM Cart c " +
-      "LEFT JOIN FETCH c.cartItems ci " +
-      "LEFT JOIN FETCH ci.menu " +
-      "WHERE c.user = :user")
+         "LEFT JOIN FETCH c.cartItems ci " +
+         "LEFT JOIN FETCH ci.menu m " +
+         "LEFT JOIN FETCH m.category " +
+         "WHERE c.user = :user")
   Optional<Cart> findByUserWithItems(@Param("user") User user);
+
+  @Query("select distinct c from Cart c " +
+         "join fetch c.user " +
+         "left join fetch c.cartItems ci " +
+         "left join fetch ci.menu m " +
+         "left join fetch m.category cat " +
+         "left join fetch cat.cafeteria caf " +
+         "where c.user = :user")
+  Optional<Cart> findCartForCheckout(@Param("user") User user);
 
   Optional<Cart> findByUser(User user);
 }

@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import shop.campustable.campustablebeclone.domain.category.entity.Category;
-import shop.campustable.campustablebeclone.domain.menu.dto.MenuResponse;
 import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
 
 public interface MenuRepository extends JpaRepository<Menu, Long> {
@@ -18,19 +17,13 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
   List<Menu> findByCategory(Category category);
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
-  @Query("select m from Menu m where m.id =:id")
-  Optional<Menu> findByIdForUpdate(@Param("id") Long id);
+  @Query("select m from Menu m where m.id in (:ids)")
+  List<Menu> findAllByIdsForUpdate(@Param("ids") List<Long> ids);
 
-  @Query("SELECT new shop.campustable.campustablebeclone.domain.menu.dto.MenuResponse("+
-         "m.id,"+
-         "m.category.id,"+
-         "m.menuName,"+
-         "m.price,"+
-         "m.menuUrl,"+
-         "m.available,"+
-         "m.stockQuantity,"+
-         "m.createdAt,"+
-         "m.updatedAt)"+
-        "FROM Menu m")
-  List<MenuResponse> findAllMenuResponses();
+  @Query("SELECT m FROM Menu m JOIN FETCH m.category")
+  List<Menu> findAllWithCategory();
+
+  @Query("select m from Menu m join fetch m.category where m.id = :id")
+  Optional<Menu> findByIdWithCategory(@Param("id") Long id);
+
 }

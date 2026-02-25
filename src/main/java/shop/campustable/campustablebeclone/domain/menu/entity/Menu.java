@@ -19,6 +19,7 @@ import shop.campustable.campustablebeclone.domain.menu.dto.MenuRequest;
 import shop.campustable.campustablebeclone.global.common.BaseTimeEntity;
 import shop.campustable.campustablebeclone.global.exception.CustomException;
 import shop.campustable.campustablebeclone.global.exception.ErrorCode;
+import software.amazon.awssdk.services.s3.endpoints.internal.Value.Int;
 
 @Entity
 @Getter
@@ -52,20 +53,20 @@ public class Menu extends BaseTimeEntity {
   @Column(nullable = false)
   private int stockQuantity;
 
-  public void update(MenuRequest request) {
-    if (request.getMenuName() != null && !request.getMenuName().isBlank()) {
-      this.menuName = request.getMenuName();
+  public void update(String menuName, Integer price, Integer stockQuantity, Boolean available) {
+    if (menuName != null && !menuName.isBlank()) {
+      this.menuName = menuName;
     }
-    if (request.getPrice() != null && request.getPrice() > 0) {
-      this.price = request.getPrice();
+    if (price != null && price > 0) {
+      this.price = price;
     }
-    if (request.getStockQuantity() != null && request.getStockQuantity() >= 0) {
-      this.stockQuantity = request.getStockQuantity();
+    if (stockQuantity != null && stockQuantity >= 0) {
+      this.stockQuantity = stockQuantity;
     }
     if (this.getStockQuantity() == 0) {
       this.available = false;
-    } else if (request.getAvailable() != null) {
-      this.available = request.getAvailable();
+    } else if (available != null) {
+      this.available = available;
     }
   }
 

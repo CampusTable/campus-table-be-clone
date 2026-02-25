@@ -94,8 +94,7 @@ public class Cart {
     }
   }
 
-  public void clearCart(){
-    this.cartItems.clear();
+  public void resetCafeteriaId(){
     this.cafeteriaId = null;
   }
 

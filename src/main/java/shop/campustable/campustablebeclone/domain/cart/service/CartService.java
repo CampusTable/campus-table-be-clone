@@ -10,6 +10,7 @@ import shop.campustable.campustablebeclone.domain.cart.dto.CartItemResponse;
 import shop.campustable.campustablebeclone.domain.cart.dto.CartItemRequest;
 import shop.campustable.campustablebeclone.domain.cart.dto.CartResponse;
 import shop.campustable.campustablebeclone.domain.cart.entity.Cart;
+import shop.campustable.campustablebeclone.domain.cart.repository.CartItemRepository;
 import shop.campustable.campustablebeclone.domain.cart.repository.CartRepository;
 import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
 import shop.campustable.campustablebeclone.domain.menu.repository.MenuRepository;
@@ -26,57 +27,15 @@ import shop.campustable.campustablebeclone.global.exception.ErrorCode;
 public class CartService {
 
   private final CartRepository cartRepository;
+  private final CartItemRepository cartItemRepository;
   private final MenuRepository menuRepository;
   private final UserRepository userRepository;
 
   @Value("${spring.cloud.aws.s3.domain}")
   private String s3Domain;
 
-  private String getFullUrl(String menuUrl) {
-    if (menuUrl == null || menuUrl.isBlank()) {
-      return null;
-    }
-    String baseUrl = s3Domain.endsWith("/") ? s3Domain : s3Domain + "/";
-    String path = menuUrl.startsWith("/") ? menuUrl.substring(1) : menuUrl;
-    return baseUrl + path;
-  }
-
-  public CartResponse addOrUpdateItem(CartItemRequest request) {
-    Long userId = SecurityUtil.getCurrentUserId();
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> {
-          log.warn("addOrUpdateItem: 유효하지 않은 user {}", userId);
-          return new CustomException(ErrorCode.USER_NOT_FOUND);
-        });
-
-    Menu menu = menuRepository.findById(request.getMenuId())
-        .orElseThrow(() -> {
-          log.warn("addOrUpdateItem: 해당 메뉴는 존재하지 않습니다. menuId: {}", request.getMenuId());
-          return new CustomException(ErrorCode.MENU_NOT_FOUND);
-        });
-
-    Cart cart = cartRepository.findByUserWithItems(user)
-        .orElseGet(() -> cartRepository.save(new Cart(user)));
-
-    cart.addOrUpdateItem(menu, request.getQuantity());
-    log.info("addOrUpdateItem: 유저 {} - 메뉴 {} 를 {}개 담았습니다.", userId, menu.getMenuName(), request.getQuantity());
-    return getMyCart();
-  }
-
-  @Transactional(readOnly = true)
-  public CartResponse getMyCart() {
-
-    Long userId = SecurityUtil.getCurrentUserId();
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> {
-          log.warn("getMyCart: 유효하지 않은 user {}", userId);
-          return new CustomException(ErrorCode.USER_NOT_FOUND);
-        });
-
-    Cart cart = cartRepository.findByUserWithItems(user)
-        .orElse(null);
-
-    if (cart == null || cart.getCartItems().isEmpty()) {
+  private CartResponse convertToCartResponse(Cart cart){
+    if(cart == null || cart.getCartItems().isEmpty()){
       return CartResponse.empty();
     }
 
@@ -94,29 +53,60 @@ public class CartService {
     return CartResponse.from(cart, responses, totalPrice);
   }
 
+  private String getFullUrl(String menuUrl) {
+    if (menuUrl == null || menuUrl.isBlank()) {
+      return null;
+    }
+    String baseUrl = s3Domain.endsWith("/") ? s3Domain : s3Domain + "/";
+    String path = menuUrl.startsWith("/") ? menuUrl.substring(1) : menuUrl;
+    return baseUrl + path;
+  }
+
+  public CartResponse addOrUpdateItem(CartItemRequest request) {
+    Long userId = SecurityUtil.getCurrentUserId();
+    User user = userRepository.getReferenceById(userId);
+
+    Menu menu = menuRepository.findByIdWithCategory(request.getMenuId())
+        .orElseThrow(() -> {
+          log.warn("addOrUpdateItem: 해당 메뉴는 존재하지 않습니다. menuId: {}", request.getMenuId());
+          return new CustomException(ErrorCode.MENU_NOT_FOUND);
+        });
+
+    Cart cart = cartRepository.findByUserWithItems(user)
+        .orElseGet(() -> cartRepository.save(new Cart(user)));
+
+    cart.addOrUpdateItem(menu, request.getQuantity());
+    log.info("addOrUpdateItem: 유저 {} - 메뉴 {} 를 {}개 담았습니다.", userId, menu.getMenuName(), request.getQuantity());
+    return convertToCartResponse(cart);
+  }
+
+  @Transactional(readOnly = true)
+  public CartResponse getMyCart() {
+
+    Long userId = SecurityUtil.getCurrentUserId();
+    User user = userRepository.getReferenceById(userId);
+
+    Cart cart = cartRepository.findByUserWithItems(user)
+        .orElse(null);
+
+    return convertToCartResponse(cart);
+  }
+
   public CartResponse deleteCartItem(Long cartItemId) {
     Long userId = SecurityUtil.getCurrentUserId();
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> {
-          log.warn("deleteCartItem: 유효하지 않은 user {}", userId);
-          return new CustomException(ErrorCode.USER_NOT_FOUND);
-        });
+    User user = userRepository.getReferenceById(userId);
     Cart cart = cartRepository.findByUserWithItems(user)
         .orElseThrow(() -> {
           log.warn("deleteCartItem: 유저 {}에게 cart가 존재하지 않습니다.", userId);
           return new CustomException(ErrorCode.CART_NOT_FOUND);
         });
     cart.removeItem(cartItemId);
-    return getMyCart();
+    return convertToCartResponse(cart);
   }
 
   public void clearMyCart() {
     Long userId = SecurityUtil.getCurrentUserId();
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> {
-          log.warn("clearCart: 유효하지 않은 user {}", userId);
-          return new CustomException(ErrorCode.USER_NOT_FOUND);
-        });
+    User user = userRepository.getReferenceById(userId);
 
     Cart cart = cartRepository.findByUserWithItems(user)
         .orElseThrow(() -> {
@@ -124,7 +114,9 @@ public class CartService {
           return new CustomException(ErrorCode.CART_NOT_FOUND);
         });
 
-    cart.clearCart();
+    cartItemRepository.deleteAllByCart(cart);
+    cart.resetCafeteriaId();
+    log.info("clearMyCart: 유저 {}의 장바구니가 비워졌습니다.", userId);
   }
 
 
