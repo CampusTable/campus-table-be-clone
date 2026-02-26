@@ -9,7 +9,7 @@ import shop.campustable.campustablebeclone.domain.cart.entity.CartItem;
 
 public interface CartItemRepository extends JpaRepository<CartItem, Long> {
 
-  @Modifying
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query("delete from CartItem ci where ci.cart = :cart")
   void deleteAllByCart(@Param("cart") Cart cart);
 }

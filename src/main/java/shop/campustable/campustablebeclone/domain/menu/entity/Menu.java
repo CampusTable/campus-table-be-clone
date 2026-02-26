@@ -15,11 +15,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import shop.campustable.campustablebeclone.domain.category.entity.Category;
-import shop.campustable.campustablebeclone.domain.menu.dto.MenuRequest;
 import shop.campustable.campustablebeclone.global.common.BaseTimeEntity;
 import shop.campustable.campustablebeclone.global.exception.CustomException;
 import shop.campustable.campustablebeclone.global.exception.ErrorCode;
-import software.amazon.awssdk.services.s3.endpoints.internal.Value.Int;
 
 @Entity
 @Getter

@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -51,7 +52,11 @@ public class OrderService {
 
   public OrderResponse createOrder() {
     Long userId = SecurityUtil.getCurrentUserId();
-    User user = userRepository.getReferenceById(userId);
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> {
+          log.warn("createOrder: 유효하지 않은 user {}", userId);
+          return new CustomException(ErrorCode.USER_NOT_FOUND);
+        });
 
     Cart cart = cartRepository.findCartForCheckout(user)
         .orElseThrow(() -> {
@@ -105,9 +110,8 @@ public class OrderService {
 
     Order savedOrder = orderRepository.save(order);
 
-    cartItemRepository.deleteAllByCart(cart);
     cart.resetCafeteriaId();
-
+    cartItemRepository.deleteAllByCart(cart);
 
     if (TransactionSynchronizationManager.isActualTransactionActive()) {
       TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -142,6 +146,7 @@ public class OrderService {
     return orders.map(OrderResponse::from);
   }
 
+  @PreAuthorize("hasAuthority('ADMIN')")
   @Transactional(readOnly = true)
   public OrderResponse getOrderById(Long orderId){
     Order order = orderRepository.findByIdWithDetails(orderId)

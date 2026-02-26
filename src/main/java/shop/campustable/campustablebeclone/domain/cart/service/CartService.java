@@ -64,7 +64,11 @@ public class CartService {
 
   public CartResponse addOrUpdateItem(CartItemRequest request) {
     Long userId = SecurityUtil.getCurrentUserId();
-    User user = userRepository.getReferenceById(userId);
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> {
+          log.warn("addOrUpdateItem: 유효하지 않은 user {}", userId);
+          return new CustomException(ErrorCode.USER_NOT_FOUND);
+        });
 
     Menu menu = menuRepository.findByIdWithCategory(request.getMenuId())
         .orElseThrow(() -> {
@@ -84,7 +88,11 @@ public class CartService {
   public CartResponse getMyCart() {
 
     Long userId = SecurityUtil.getCurrentUserId();
-    User user = userRepository.getReferenceById(userId);
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> {
+          log.warn("getMyCart: 유효하지 않은 user {}", userId);
+          return new CustomException(ErrorCode.USER_NOT_FOUND);
+        });
 
     Cart cart = cartRepository.findByUserWithItems(user)
         .orElse(null);
@@ -94,7 +102,11 @@ public class CartService {
 
   public CartResponse deleteCartItem(Long cartItemId) {
     Long userId = SecurityUtil.getCurrentUserId();
-    User user = userRepository.getReferenceById(userId);
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> {
+          log.warn("deleteCartItem: 유효하지 않은 user {}", userId);
+          return new CustomException(ErrorCode.USER_NOT_FOUND);
+        });
     Cart cart = cartRepository.findByUserWithItems(user)
         .orElseThrow(() -> {
           log.warn("deleteCartItem: 유저 {}에게 cart가 존재하지 않습니다.", userId);
@@ -106,7 +118,11 @@ public class CartService {
 
   public void clearMyCart() {
     Long userId = SecurityUtil.getCurrentUserId();
-    User user = userRepository.getReferenceById(userId);
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> {
+          log.warn("clearCart: 유효하지 않은 user {}", userId);
+          return new CustomException(ErrorCode.USER_NOT_FOUND);
+        });
 
     Cart cart = cartRepository.findByUserWithItems(user)
         .orElseThrow(() -> {
