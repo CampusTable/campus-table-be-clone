@@ -40,6 +40,7 @@ public class CartService {
     }
 
     List<CartItemResponse> responses = cart.getCartItems().stream()
+        .filter(cartItem -> cartItem.getMenu() != null)
         .map(cartItem -> CartItemResponse.from(
             cartItem,
             getFullUrl(cartItem.getMenu().getMenuUrl())
