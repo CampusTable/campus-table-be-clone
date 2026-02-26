@@ -12,11 +12,18 @@ import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
 
 public interface MenuRepository extends JpaRepository<Menu, Long> {
 
-  Optional<Menu> findByCategoryAndMenuName(Category category,String menuName);
+  Optional<Menu> findByCategoryAndMenuName(Category category, String menuName);
 
   List<Menu> findByCategory(Category category);
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
-  @Query("select m from Menu m where m.id =:id")
-  Optional<Menu> findByIdForUpdate(@Param("id") Long id);
+  @Query("select m from Menu m where m.id in (:ids)")
+  List<Menu> findAllByIdsForUpdate(@Param("ids") List<Long> ids);
+
+  @Query("SELECT m FROM Menu m JOIN FETCH m.category")
+  List<Menu> findAllWithCategory();
+
+  @Query("select m from Menu m join fetch m.category where m.id = :id")
+  Optional<Menu> findByIdWithCategory(@Param("id") Long id);
+
 }

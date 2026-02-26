@@ -15,7 +15,7 @@ public class TopMenuResponse {
   private Long rank;
   private MenuResponse menu;
 
-  public static TopMenuResponse of(Long rank, Menu menu,String fullUrl) {
+  public static TopMenuResponse of(Long rank, Menu menu,String fullUrl) {//from --> 엔티티 -> dto (?) // of ( o ) //// mapper (entity <-> dto) record (?)
     return TopMenuResponse.builder()
         .rank(rank)
         .menu(MenuResponse.from(menu,fullUrl))

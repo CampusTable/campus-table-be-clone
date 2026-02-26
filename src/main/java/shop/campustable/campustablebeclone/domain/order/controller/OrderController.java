@@ -36,6 +36,12 @@ public class OrderController implements OrderControllerDocs {
       @PageableDefault(size = 10, sort = "id", direction = Direction.DESC) Pageable pageable){
     return ResponseEntity.ok(orderService.getMyOrders(pageable));
   }
+  //생성일, 좋아요 순 --> 파라미터 받을떄 (동적) 공부
+
+  @GetMapping("/admin/orders/{order-id}")
+  public ResponseEntity<OrderResponse> getOrderById(@PathVariable(name = "order-id")Long orderId){
+    return ResponseEntity.ok(orderService.getOrderById(orderId));
+  }
 
   @Override
   @PreAuthorize("hasAuthority('ADMIN')")
