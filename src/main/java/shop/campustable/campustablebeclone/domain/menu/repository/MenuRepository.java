@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 import shop.campustable.campustablebeclone.domain.category.entity.Category;
 import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
 
-public interface MenuRepository extends JpaRepository<Menu, Long> {
+public interface MenuRepository extends JpaRepository<Menu, Long>, MenuRepositoryCustom {
 
   Optional<Menu> findByCategoryAndMenuName(Category category, String menuName);
 
@@ -23,7 +23,7 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
   @Query("SELECT m FROM Menu m JOIN FETCH m.category")
   List<Menu> findAllWithCategory();
 
-  @Query("select m from Menu m join fetch m.category where m.id = :id")
-  Optional<Menu> findByIdWithCategory(@Param("id") Long id);
+//  @Query("select m from Menu m join fetch m.category where m.id = :id")
+//  Optional<Menu> findByIdWithCategory(@Param("id") Long id);
 
 }
