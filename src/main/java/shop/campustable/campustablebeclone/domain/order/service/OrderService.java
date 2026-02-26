@@ -146,7 +146,6 @@ public class OrderService {
     return orders.map(OrderResponse::from);
   }
 
-  @PreAuthorize("hasAuthority('ADMIN')")
   @Transactional(readOnly = true)
   public OrderResponse getOrderById(Long orderId){
     Order order = orderRepository.findByIdWithDetails(orderId)
