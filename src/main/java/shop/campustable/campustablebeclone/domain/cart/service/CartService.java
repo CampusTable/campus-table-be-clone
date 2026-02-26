@@ -130,8 +130,8 @@ public class CartService {
           return new CustomException(ErrorCode.CART_NOT_FOUND);
         });
 
-    cartItemRepository.deleteAllByCart(cart);
     cart.resetCafeteriaId();
+    cartItemRepository.deleteAllByCart(cart);
     log.info("clearMyCart: 유저 {}의 장바구니가 비워졌습니다.", userId);
   }
 
