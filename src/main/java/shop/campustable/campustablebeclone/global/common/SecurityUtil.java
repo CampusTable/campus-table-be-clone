@@ -12,6 +12,8 @@ import shop.campustable.campustablebeclone.global.exception.ErrorCode;
 @Slf4j
 public class SecurityUtil {
 
+  //file 크기 예외 메소드? 구현
+
   private SecurityUtil() {}
 
   public static Long getCurrentUserId(){

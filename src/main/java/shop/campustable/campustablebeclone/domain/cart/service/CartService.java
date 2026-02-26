@@ -10,6 +10,7 @@ import shop.campustable.campustablebeclone.domain.cart.dto.CartItemResponse;
 import shop.campustable.campustablebeclone.domain.cart.dto.CartItemRequest;
 import shop.campustable.campustablebeclone.domain.cart.dto.CartResponse;
 import shop.campustable.campustablebeclone.domain.cart.entity.Cart;
+import shop.campustable.campustablebeclone.domain.cart.repository.CartItemRepository;
 import shop.campustable.campustablebeclone.domain.cart.repository.CartRepository;
 import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
 import shop.campustable.campustablebeclone.domain.menu.repository.MenuRepository;
@@ -26,11 +27,32 @@ import shop.campustable.campustablebeclone.global.exception.ErrorCode;
 public class CartService {
 
   private final CartRepository cartRepository;
+  private final CartItemRepository cartItemRepository;
   private final MenuRepository menuRepository;
   private final UserRepository userRepository;
 
   @Value("${spring.cloud.aws.s3.domain}")
   private String s3Domain;
+
+  private CartResponse convertToCartResponse(Cart cart){
+    if(cart == null || cart.getCartItems().isEmpty()){
+      return CartResponse.empty();
+    }
+
+    List<CartItemResponse> responses = cart.getCartItems().stream()
+        .filter(cartItem -> cartItem.getMenu() != null)
+        .map(cartItem -> CartItemResponse.from(
+            cartItem,
+            getFullUrl(cartItem.getMenu().getMenuUrl())
+        ))
+        .toList();
+
+    int totalPrice = responses.stream()
+        .mapToInt(CartItemResponse::getSubtotal)
+        .sum();
+
+    return CartResponse.from(cart, responses, totalPrice);
+  }
 
   private String getFullUrl(String menuUrl) {
     if (menuUrl == null || menuUrl.isBlank()) {
@@ -49,7 +71,7 @@ public class CartService {
           return new CustomException(ErrorCode.USER_NOT_FOUND);
         });
 
-    Menu menu = menuRepository.findById(request.getMenuId())
+    Menu menu = menuRepository.findByIdWithCategory(request.getMenuId())
         .orElseThrow(() -> {
           log.warn("addOrUpdateItem: 해당 메뉴는 존재하지 않습니다. menuId: {}", request.getMenuId());
           return new CustomException(ErrorCode.MENU_NOT_FOUND);
@@ -60,7 +82,7 @@ public class CartService {
 
     cart.addOrUpdateItem(menu, request.getQuantity());
     log.info("addOrUpdateItem: 유저 {} - 메뉴 {} 를 {}개 담았습니다.", userId, menu.getMenuName(), request.getQuantity());
-    return getMyCart();
+    return convertToCartResponse(cart);
   }
 
   @Transactional(readOnly = true)
@@ -76,22 +98,7 @@ public class CartService {
     Cart cart = cartRepository.findByUserWithItems(user)
         .orElse(null);
 
-    if (cart == null || cart.getCartItems().isEmpty()) {
-      return CartResponse.empty();
-    }
-
-    List<CartItemResponse> responses = cart.getCartItems().stream()
-        .map(cartItem -> CartItemResponse.from(
-            cartItem,
-            getFullUrl(cartItem.getMenu().getMenuUrl())
-        ))
-        .toList();
-
-    int totalPrice = responses.stream()
-        .mapToInt(CartItemResponse::getSubtotal)
-        .sum();
-
-    return CartResponse.from(cart, responses, totalPrice);
+    return convertToCartResponse(cart);
   }
 
   public CartResponse deleteCartItem(Long cartItemId) {
@@ -107,7 +114,7 @@ public class CartService {
           return new CustomException(ErrorCode.CART_NOT_FOUND);
         });
     cart.removeItem(cartItemId);
-    return getMyCart();
+    return convertToCartResponse(cart);
   }
 
   public void clearMyCart() {
@@ -124,7 +131,9 @@ public class CartService {
           return new CustomException(ErrorCode.CART_NOT_FOUND);
         });
 
-    cart.clearCart();
+    cart.resetCafeteriaId();
+    cartItemRepository.deleteAllByCart(cart);
+    log.info("clearMyCart: 유저 {}의 장바구니가 비워졌습니다.", userId);
   }
 
 
