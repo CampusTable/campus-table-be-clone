@@ -34,8 +34,8 @@ public class CartService {
   @Value("${spring.cloud.aws.s3.domain}")
   private String s3Domain;
 
-  private CartResponse convertToCartResponse(Cart cart){
-    if(cart == null || cart.getCartItems().isEmpty()){
+  private CartResponse convertToCartResponse(Cart cart) {
+    if (cart == null || cart.getCartItems() == null || cart.getCartItems().isEmpty()) {
       return CartResponse.empty();
     }
 

@@ -38,6 +38,7 @@ public class OrderController implements OrderControllerDocs {
   }
   //생성일, 좋아요 순 --> 파라미터 받을떄 (동적) 공부
 
+  @PreAuthorize("hasAuthority('ADMIN')")
   @GetMapping("/admin/orders/{order-id}")
   public ResponseEntity<OrderResponse> getOrderById(@PathVariable(name = "order-id")Long orderId){
     return ResponseEntity.ok(orderService.getOrderById(orderId));
