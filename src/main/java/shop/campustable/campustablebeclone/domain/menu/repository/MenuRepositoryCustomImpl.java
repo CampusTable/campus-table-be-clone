@@ -2,9 +2,13 @@ package shop.campustable.campustablebeclone.domain.menu.repository;
 
 import static shop.campustable.campustablebeclone.domain.menu.entity.QMenu.menu;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.util.StringUtils;
+import shop.campustable.campustablebeclone.domain.menu.dto.MenuSearchRequest;
 import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
 
 @RequiredArgsConstructor
@@ -21,6 +25,26 @@ public class MenuRepositoryCustomImpl implements MenuRepositoryCustom {
             .where(menu.id.eq(id))
             .fetchOne()
     );
+  }
+
+  @Override
+  public List<Menu> searchMenus(MenuSearchRequest request) {
+    return queryFactory.
+        selectFrom(menu)
+        .leftJoin(menu.category).fetchJoin()
+        .where(
+            menuNameContains(request.getMenuName()),
+            categoryIdEq(request.getCategoryId())
+        )
+        .fetch();
+  }
+
+  private BooleanExpression menuNameContains(String menuName) {
+    return StringUtils.hasText(menuName) ? menu.menuName.contains(menuName) : null;
+  }
+
+  private BooleanExpression categoryIdEq(Long categoryId) {
+    return categoryId != null ? menu.category.id.eq(categoryId) : null;
   }
 
 }
