@@ -2,6 +2,7 @@ package shop.campustable.campustablebeclone.domain.menu.repository;
 
 import static shop.campustable.campustablebeclone.domain.menu.entity.QMenu.menu;
 
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
@@ -36,6 +37,7 @@ public class MenuRepositoryCustomImpl implements MenuRepositoryCustom {
             menuNameContains(request.getMenuName()),
             categoryIdEq(request.getCategoryId())
         )
+        .orderBy(menuSort(request.getSort()))
         .fetch();
   }
 
@@ -45,6 +47,18 @@ public class MenuRepositoryCustomImpl implements MenuRepositoryCustom {
 
   private BooleanExpression categoryIdEq(Long categoryId) {
     return categoryId != null ? menu.category.id.eq(categoryId) : null;
+  }
+
+  private OrderSpecifier<?> menuSort(String sort) {
+    if (sort == null) {
+      return menu.id.desc();
+    }
+    return switch (sort) {
+      case "price_asc" -> menu.price.asc();
+      case "price_desc" -> menu.price.desc();
+      case "newest" -> menu.createdAt.desc();
+      default -> menu.id.desc();
+    };
   }
 
 }

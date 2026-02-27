@@ -53,7 +53,7 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
   }
 
   @Override
-  public Optional<Order> findByIdWithDetails(Long orderId){
+  public Optional<Order> findByIdWithDetails(Long orderId) {
     return Optional.ofNullable(
         queryFactory
             .selectFrom(order)

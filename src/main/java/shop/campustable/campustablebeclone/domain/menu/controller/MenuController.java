@@ -2,6 +2,7 @@ package shop.campustable.campustablebeclone.domain.menu.controller;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -85,7 +86,7 @@ public class MenuController implements MenuControllerDocs {
   }
 
   @GetMapping("/search/menus")
-  public ResponseEntity<List<MenuResponse>> searchMenus(@ModelAttribute MenuSearchRequest request) {
+  public ResponseEntity<List<MenuResponse>> searchMenus(@ParameterObject @ModelAttribute MenuSearchRequest request) {
     List<MenuResponse> responses = menuService.searchMenus(request);
     return ResponseEntity.ok(responses);
   }
