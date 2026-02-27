@@ -1,5 +1,6 @@
 package shop.campustable.campustablebeclone.domain.cart.repository;
 
+import static shop.campustable.campustablebeclone.domain.cafeteria.entity.QCafeteria.cafeteria;
 import static shop.campustable.campustablebeclone.domain.cart.entity.QCart.cart;
 import static shop.campustable.campustablebeclone.domain.cart.entity.QCartItem.cartItem;
 import static shop.campustable.campustablebeclone.domain.category.entity.QCategory.category;
@@ -26,6 +27,22 @@ public class CartRepositoryCustomImpl implements CartRepositoryCustom {
             .leftJoin(cartItem.menu, menu).fetchJoin()
             .leftJoin(menu.category, category).fetchJoin()
             .where(cart.user.id.eq(user.getId()))
+            .fetchOne()
+    );
+  }
+
+  @Override
+  public Optional<Cart> findCartForCheckout(User user) {
+    return Optional.ofNullable(
+        queryFactory
+            .selectFrom(cart)
+            .distinct()
+            .join(cart.user).fetchJoin()
+            .leftJoin(cart.cartItems, cartItem).fetchJoin()
+            .leftJoin(cartItem.menu, menu).fetchJoin()
+            .leftJoin(menu.category, category).fetchJoin()
+            .leftJoin(category.cafeteria, cafeteria).fetchJoin()
+            .where(cart.user.eq(user))
             .fetchOne()
     );
   }

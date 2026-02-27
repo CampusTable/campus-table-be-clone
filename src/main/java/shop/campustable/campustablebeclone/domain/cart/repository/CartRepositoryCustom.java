@@ -8,4 +8,6 @@ public interface CartRepositoryCustom {
 
   Optional<Cart> findByUserWithItems(User user);
 
+  Optional<Cart> findCartForCheckout(User user);
+
 }

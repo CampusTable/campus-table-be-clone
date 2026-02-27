@@ -11,23 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import shop.campustable.campustablebeclone.domain.order.entity.Order;
 
-public interface OrderRepository extends JpaRepository<Order, Long> {
+public interface OrderRepository extends JpaRepository<Order, Long>,OrderRepositoryCustom{
 
 
-  @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
-  @Query("select o from Order o where o.id = :id")
-  Optional<Order> findByIdWithForceIncrement(@Param("id") Long id);
-
-  @Query(value = "SELECT o FROM Order o " +
-                 "JOIN FETCH o.cafeteria " +
-                 "WHERE o.user.id = :userId",
-      countQuery = "SELECT count(o) FROM Order o WHERE o.user.id = :userId")
-  Page<Order> findOrdersWithCafeteriaByUserId(@Param("userId") Long userId, Pageable pageable);
-
-  @Query("SELECT o FROM Order o " +
-         "JOIN FETCH o.cafeteria " +
-         "JOIN FETCH o.orderItems oi " +
-         "WHERE o.id = :orderId")
-  Optional<Order> findByIdWithDetails(@Param("orderId") Long orderId);
 
 }
