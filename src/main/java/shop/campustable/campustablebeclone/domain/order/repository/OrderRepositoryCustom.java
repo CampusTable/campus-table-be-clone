@@ -12,6 +12,6 @@ public interface OrderRepositoryCustom {
 
   Page<Order> findOrdersWithCafeteriaByUserId(Long userId, OrderSearchRequest request,Pageable pageable);
 
-  Optional<Order> findByIdWithDetails(Long userId);
+  Optional<Order> findByIdWithDetails(Long orderId);
 
 }

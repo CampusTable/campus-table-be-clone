@@ -1,7 +1,6 @@
 package shop.campustable.campustablebeclone.domain.order.entity;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

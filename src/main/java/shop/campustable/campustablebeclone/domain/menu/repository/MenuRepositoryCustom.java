@@ -1,6 +1,5 @@
 package shop.campustable.campustablebeclone.domain.menu.repository;
 
-import java.lang.invoke.CallSite;
 import java.util.List;
 import java.util.Optional;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuSearchRequest;

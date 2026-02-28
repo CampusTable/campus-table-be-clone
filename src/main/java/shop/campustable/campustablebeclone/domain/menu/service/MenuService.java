@@ -209,11 +209,12 @@ public class MenuService {
     }
   }
 
+  @Transactional(readOnly = true)
   public List<MenuResponse> searchMenus(MenuSearchRequest request) {
     log.info("검색 요청 - menuName: {}, categoryId: {}", request.getMenuName(), request.getCategoryId());
     List<Menu> menus = menuRepository.searchMenus(request);
 
-    if (menus == null || menus.isEmpty()) {
+    if (menus.isEmpty()) {
       return List.of();
     }
 
