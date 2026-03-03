@@ -1,5 +1,6 @@
 package shop.campustable.campustablebeclone.domain.order.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import shop.campustable.campustablebeclone.domain.order.dto.OrderResponse;
-import shop.campustable.campustablebeclone.domain.order.entity.OrderSearchRequest;
+import shop.campustable.campustablebeclone.domain.order.dto.OrderSearchRequest;
 import shop.campustable.campustablebeclone.domain.order.service.OrderService;
 
 @RestController
@@ -36,7 +37,7 @@ public class OrderController implements OrderControllerDocs {
   @Override
   @GetMapping("/orders")
   public ResponseEntity<Page<OrderResponse>> getMyOrders(
-      @ParameterObject @ModelAttribute OrderSearchRequest request,
+      @Valid @ParameterObject @ModelAttribute OrderSearchRequest request,
       @ParameterObject @PageableDefault(size = 10, sort = "id", direction = Direction.DESC) Pageable pageable) {
     return ResponseEntity.ok(orderService.getMyOrders(request, pageable));
   }

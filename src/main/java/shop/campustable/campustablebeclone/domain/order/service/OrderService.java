@@ -25,8 +25,7 @@ import shop.campustable.campustablebeclone.domain.menu.repository.MenuRepository
 import shop.campustable.campustablebeclone.domain.order.dto.OrderResponse;
 import shop.campustable.campustablebeclone.domain.order.entity.Order;
 import shop.campustable.campustablebeclone.domain.order.entity.OrderItem;
-import shop.campustable.campustablebeclone.domain.order.entity.OrderSearchRequest;
-import shop.campustable.campustablebeclone.domain.order.entity.OrderStatus;
+import shop.campustable.campustablebeclone.domain.order.dto.OrderSearchRequest;
 import shop.campustable.campustablebeclone.domain.order.repository.OrderItemRepository;
 import shop.campustable.campustablebeclone.domain.order.repository.OrderRepository;
 import shop.campustable.campustablebeclone.domain.user.entity.User;

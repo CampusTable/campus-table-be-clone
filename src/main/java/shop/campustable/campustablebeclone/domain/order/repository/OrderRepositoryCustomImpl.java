@@ -15,7 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import shop.campustable.campustablebeclone.domain.order.entity.Order;
-import shop.campustable.campustablebeclone.domain.order.entity.OrderSearchRequest;
+import shop.campustable.campustablebeclone.domain.order.dto.OrderSearchRequest;
 import shop.campustable.campustablebeclone.domain.order.entity.OrderStatus;
 
 @RequiredArgsConstructor
@@ -35,52 +35,59 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
     );
   }
 
-  @Override
-  public Page<Order> findOrdersWithCafeteriaByUserId(Long userId, OrderSearchRequest request, Pageable pageable) {
-
-    List<Order> content = queryFactory
-        .selectFrom(order)
-        .join(order.cafeteria, cafeteria).fetchJoin()
-        .where(
-            order.user.id.eq(userId),
-            dateBetween(request.getStartDate(), request.getEndDate()),
-            statusEq(request.getStatus()),
-            cafeteriaIdEq(request.getCafeteriaId())
-        )
-        .offset(pageable.getOffset())
-        .limit(pageable.getPageSize())
-        .orderBy(order.createdAt.desc())
-        .fetch();
-
-    long total = queryFactory
-        .select(order.count())
-        .from(order)
-        .where(
-            order.user.id.eq(userId),
-            dateBetween(request.getStartDate(), request.getEndDate()),
-            statusEq(request.getStatus()),
-            cafeteriaIdEq(request.getCafeteriaId())
-            )
-        .fetchOne();
-
-    return new PageImpl<>(content, pageable, total);
-  }
+//  @Override
+//  public Page<Order> findOrdersWithCafeteriaByUserId(Long userId, OrderSearchRequest request, Pageable pageable) {
+//
+//    List<Order> content = queryFactory
+//        .selectFrom(order)
+//        .join(order.cafeteria, cafeteria).fetchJoin()
+//        .where(
+//            order.user.id.eq(userId),
+//            dateBetween(request.getStartDate(), request.getEndDate()),
+//            statusEq(request.getStatus()),
+//            cafeteriaIdEq(request.getCafeteriaId())
+//        )
+//        .offset(pageable.getOffset())
+//        .limit(pageable.getPageSize())
+//        .orderBy(order.createdAt.desc())
+//        .fetch();
+//
+//    long total = queryFactory
+//        .select(order.count())
+//        .from(order)
+//        .where(
+//            order.user.id.eq(userId),
+//            dateBetween(request.getStartDate(), request.getEndDate()),
+//            statusEq(request.getStatus()),
+//            cafeteriaIdEq(request.getCafeteriaId())
+//            )
+//        .fetchOne();
+//
+//    return new PageImpl<>(content, pageable, total);
+//  }
 
   @Override
   public Optional<Order> findByIdWithDetails(Long orderId) {
     return Optional.ofNullable(
         queryFactory
             .selectFrom(order)
+            .distinct()
             .join(order.cafeteria, cafeteria).fetchJoin()
-            .join(order.orderItems, orderItem).fetchJoin()
+            .leftJoin(order.orderItems, orderItem).fetchJoin()
             .where(order.id.eq(orderId))
             .fetchOne()
     );
   }
 
   private BooleanExpression dateBetween(LocalDateTime start, LocalDateTime end) {
-    if(start==null || end ==null ) return null;
-    return order.createdAt.between(start, end);
+    if(start != null && end != null) {
+      return order.createdAt.between(start, end);
+    } else if (start != null) {
+      return order.createdAt.goe(start);
+    } else if (end != null) {
+      return order.createdAt.loe(end);
+    }
+    return null;
   }
 
   private BooleanExpression statusEq(OrderStatus status) {
