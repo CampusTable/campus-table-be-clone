@@ -69,6 +69,7 @@ public interface MenuControllerDocs {
       @ApiResponse(responseCode = "400", description = "INVALID_FILE_TYPE - 이미지 파일(.jpg, .jpeg, .png, .webp)만 업로드 가능합니다."),
       @ApiResponse(responseCode = "500", description = "S3_UPLOAD_ERROR / INTERNAL_SERVER_ERROR")
   })
+
   ResponseEntity<MenuResponse> createMenu(
       @Parameter(description = "카테고리 ID", required = true)
       @PathVariable("category-id") Long categoryId,
