@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
 import shop.campustable.campustablebeclone.domain.order.entity.OrderStatus;
 
 @Getter
@@ -12,7 +13,9 @@ import shop.campustable.campustablebeclone.domain.order.entity.OrderStatus;
 @NoArgsConstructor
 public class OrderSearchRequest {
 
+  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
   private LocalDateTime startDate;
+  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
   private LocalDateTime endDate;
   private OrderStatus status;
   private Long cafeteriaId;
