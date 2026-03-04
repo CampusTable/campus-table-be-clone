@@ -1,5 +1,6 @@
 package shop.campustable.campustablebeclone.domain.menu.repository;
 
+
 import static shop.campustable.campustablebeclone.domain.menu.entity.QMenu.menu;
 
 import com.querydsl.core.types.OrderSpecifier;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuSearchRequest;
 import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
+import shop.campustable.campustablebeclone.domain.menu.entity.MenuSortType;
 
 @RequiredArgsConstructor
 public class MenuRepositoryCustomImpl implements MenuRepositoryCustom {
@@ -32,12 +34,12 @@ public class MenuRepositoryCustomImpl implements MenuRepositoryCustom {
   public List<Menu> searchMenus(MenuSearchRequest request) {
     return queryFactory.
         selectFrom(menu)
-        .leftJoin(menu.category).fetchJoin()
+        .join(menu.category).fetchJoin()
         .where(
             menuNameContains(request.getMenuName()),
             categoryIdEq(request.getCategoryId())
         )
-        .orderBy(menuSort(request.getSort()))
+        .orderBy(menuSort(request.getSortType()))
         .fetch();
   }
 
@@ -49,15 +51,15 @@ public class MenuRepositoryCustomImpl implements MenuRepositoryCustom {
     return categoryId != null ? menu.category.id.eq(categoryId) : null;
   }
 
-  private OrderSpecifier<?> menuSort(String sort) {
-    if (sort == null) {
+  private OrderSpecifier<?> menuSort(MenuSortType sortType) {
+    if (sortType == null) {
       return menu.id.desc();
     }
-    return switch (sort) {
-      case "price_asc" -> menu.price.asc();
-      case "price_desc" -> menu.price.desc();
-      case "newest" -> menu.createdAt.desc();
-      default -> menu.id.desc();
+    return switch (sortType) {
+      case PRICE_ASC -> menu.price.asc();
+      case PRICE_DESC -> menu.price.desc();
+      case NEWEST -> menu.createdAt.desc();
+      case OLDEST -> menu.createdAt.asc();
     };
   }
 

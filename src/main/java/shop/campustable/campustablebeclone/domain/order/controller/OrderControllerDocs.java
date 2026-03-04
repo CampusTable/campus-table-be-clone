@@ -112,7 +112,7 @@ public interface OrderControllerDocs {
                 """
   )
   ResponseEntity<Page<OrderResponse>> getMyOrders(
-      OrderSearchRequest request, // 👈 어노테이션 없이 타입만 명시
+      OrderSearchRequest request,
       Pageable pageable
   );
 
