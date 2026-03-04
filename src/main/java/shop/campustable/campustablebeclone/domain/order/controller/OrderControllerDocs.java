@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import shop.campustable.campustablebeclone.domain.order.dto.OrderResponse;
+import shop.campustable.campustablebeclone.domain.order.dto.OrderSearchRequest;
 
 @Tag(name = "Order API", description = "주문 생성 및 주문 상태 관리 API")
 public interface OrderControllerDocs {
@@ -110,7 +111,10 @@ public interface OrderControllerDocs {
                 (Service 내부에서 CustomException을 발생시키지 않음)
                 """
   )
-  ResponseEntity<Page<OrderResponse>> getMyOrders(Pageable pageable);
+  ResponseEntity<Page<OrderResponse>> getMyOrders(
+      OrderSearchRequest request,
+      Pageable pageable
+  );
 
 
 

@@ -19,6 +19,7 @@ import shop.campustable.campustablebeclone.domain.category.entity.Category;
 import shop.campustable.campustablebeclone.domain.category.repository.CategoryRepository;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuRequest;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuResponse;
+import shop.campustable.campustablebeclone.domain.menu.dto.MenuSearchRequest;
 import shop.campustable.campustablebeclone.domain.menu.dto.TopMenuResponse;
 import shop.campustable.campustablebeclone.domain.menu.entity.Menu;
 import shop.campustable.campustablebeclone.domain.menu.repository.MenuRepository;
@@ -206,6 +207,20 @@ public class MenuService {
       log.error("getTop3MenusByCafeteria: Redis 연결 실패로 랭킹을 불러올 수 없습니다: {}", e.getMessage());
       return List.of();
     }
+  }
+
+  @Transactional(readOnly = true)
+  public List<MenuResponse> searchMenus(MenuSearchRequest request) {
+    log.info("검색 요청 - menuName: {}, categoryId: {}", request.getMenuName(), request.getCategoryId());
+    List<Menu> menus = menuRepository.searchMenus(request);
+
+    if (menus.isEmpty()) {
+      return List.of();
+    }
+
+    return menus.stream()
+        .map(menu -> MenuResponse.from(menu, getFullUrl(menu.getMenuUrl())))
+        .toList();
   }
 
 }

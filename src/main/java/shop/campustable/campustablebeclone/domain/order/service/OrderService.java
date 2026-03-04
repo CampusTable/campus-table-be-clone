@@ -25,7 +25,7 @@ import shop.campustable.campustablebeclone.domain.menu.repository.MenuRepository
 import shop.campustable.campustablebeclone.domain.order.dto.OrderResponse;
 import shop.campustable.campustablebeclone.domain.order.entity.Order;
 import shop.campustable.campustablebeclone.domain.order.entity.OrderItem;
-import shop.campustable.campustablebeclone.domain.order.entity.OrderStatus;
+import shop.campustable.campustablebeclone.domain.order.dto.OrderSearchRequest;
 import shop.campustable.campustablebeclone.domain.order.repository.OrderItemRepository;
 import shop.campustable.campustablebeclone.domain.order.repository.OrderRepository;
 import shop.campustable.campustablebeclone.domain.user.entity.User;
@@ -83,7 +83,7 @@ public class OrderService {
         .map(cartItem -> {
 
           Menu menu = menuMap.get(cartItem.getMenu().getId());
-          if(menu == null) {
+          if (menu == null) {
             log.warn("createOrder: 메뉴가 존재하지 않습니다. menuId={}", cartItem.getMenu().getId());
             throw new CustomException(ErrorCode.MENU_NOT_FOUND);
           }
@@ -117,7 +117,7 @@ public class OrderService {
       TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
         @Override
         public void afterCommit() {
-          try{
+          try {
             orderItems.forEach(orderItem -> {
               String key = "cafeteria:" + cafeteria.getId() + ":menu:rank";
               stringRedisTemplate.opsForZSet().incrementScore(
@@ -125,7 +125,7 @@ public class OrderService {
               );
             });
             log.info("createOrder: Redis 랭킹 업데이트 완료");
-          }catch (Exception e){
+          } catch (Exception e) {
             log.warn("createOrder: Redis 랭킹 업데이트 실패: {}", e.getMessage());
           }
         }
@@ -138,17 +138,17 @@ public class OrderService {
   }
 
   @Transactional(readOnly = true)
-  public Page<OrderResponse> getMyOrders(Pageable pageable) {
+  public Page<OrderResponse> getMyOrders(OrderSearchRequest request, Pageable pageable) {
     Long userId = SecurityUtil.getCurrentUserId();
 
-    Page<Order> orders = orderRepository.findOrdersWithCafeteriaByUserId(userId,pageable);
+    Page<Order> orders = orderRepository.findOrdersWithCafeteriaByUserId(userId, request, pageable);
 
     return orders.map(OrderResponse::from);
   }
 
   @PreAuthorize("hasAuthority('ADMIN')")
   @Transactional(readOnly = true)
-  public OrderResponse getOrderById(Long orderId){
+  public OrderResponse getOrderById(Long orderId) {
     Order order = orderRepository.findByIdWithDetails(orderId)
         .orElseThrow(() -> {
           log.warn("getOrderById: 주문이 존재하지 않습니다. {}", orderId);

@@ -43,7 +43,7 @@ public class SecurityConfig {
 
         .exceptionHandling(handling -> handling
             .authenticationEntryPoint(jwtAuthenticationEntryPoint) // 로그인 안했을 경우
-            .accessDeniedHandler(customAccessDeniedHandler)) // 권환이 없을 경우
+            .accessDeniedHandler(customAccessDeniedHandler)) // 권한이 없을 경우
 
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/api/auth/**").permitAll()

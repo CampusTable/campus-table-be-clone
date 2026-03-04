@@ -2,6 +2,7 @@ package shop.campustable.campustablebeclone.domain.menu.controller;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,9 +13,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuRequest;
 import shop.campustable.campustablebeclone.domain.menu.dto.MenuResponse;
+import shop.campustable.campustablebeclone.domain.menu.dto.MenuSearchRequest;
 import shop.campustable.campustablebeclone.domain.menu.dto.TopMenuResponse;
 import shop.campustable.campustablebeclone.domain.menu.service.MenuService;
 
@@ -26,7 +29,10 @@ public class MenuController implements MenuControllerDocs {
   private final MenuService menuService;
 
   @Override
-  @PostMapping(value = "/admin/categories/{category-id}/menus")
+  @PostMapping(
+      value = "/admin/categories/{category-id}/menus",
+      consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+  )
   public ResponseEntity<MenuResponse> createMenu(
       @PathVariable(name = "category-id") Long categoryId,
       @ModelAttribute MenuRequest request) {
@@ -47,7 +53,7 @@ public class MenuController implements MenuControllerDocs {
 
   @Override
   @GetMapping("/categories/{category-id}/menus")
-  public ResponseEntity<List<MenuResponse>> getMenusByCategory(@PathVariable(name = "category-id")Long categoryId) {
+  public ResponseEntity<List<MenuResponse>> getMenusByCategory(@PathVariable(name = "category-id") Long categoryId) {
     List<MenuResponse> responses = menuService.getMenusByCategory(categoryId);
     return ResponseEntity.ok(responses);
   }
@@ -62,18 +68,27 @@ public class MenuController implements MenuControllerDocs {
   }
 
   @Override
-  @PatchMapping(value = "/admin/menus/{menu-id}")
+  @PatchMapping(
+      value = "/admin/menus/{menu-id}",
+      consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+  )
   public ResponseEntity<MenuResponse> updateMenu(
       @PathVariable("menu-id") Long menuId,
       @ModelAttribute MenuRequest request) {
-    MenuResponse response = menuService.updateMenu(menuId, request,request.getImage());
+    MenuResponse response = menuService.updateMenu(menuId, request, request.getImage());
     return ResponseEntity.ok(response);
   }
 
   @Override
   @GetMapping("/cafeterias/{cafeteria-id}/top-menus")
-  public ResponseEntity<List<TopMenuResponse>> getTop3MenusByCafeteria(@PathVariable(name = "cafeteria-id")Long cafeteriaId) {
+  public ResponseEntity<List<TopMenuResponse>> getTop3MenusByCafeteria(@PathVariable(name = "cafeteria-id") Long cafeteriaId) {
     return ResponseEntity.ok(menuService.getTop3MenusByCafeteria(cafeteriaId));
+  }
+
+  @GetMapping("/search/menus")
+  public ResponseEntity<List<MenuResponse>> searchMenus(@ParameterObject @ModelAttribute MenuSearchRequest request) {
+    List<MenuResponse> responses = menuService.searchMenus(request);
+    return ResponseEntity.ok(responses);
   }
 
 }
