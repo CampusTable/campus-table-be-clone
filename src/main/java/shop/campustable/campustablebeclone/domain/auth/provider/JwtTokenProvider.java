@@ -78,7 +78,7 @@ public class JwtTokenProvider {
     return Jwts.parser()
         .verifyWith(key)
         .build()
-        .parseSignedClaims(token)
+        .parseSignedClaims(token)// 구조검사 + 서명검사(verifyWith) + 유효기간 검사
         .getPayload()
         .get("jti",String.class);
   }
