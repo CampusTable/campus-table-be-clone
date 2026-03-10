@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -26,6 +27,7 @@ import shop.campustable.campustablebeclone.domain.order.dto.OrderResponse;
 import shop.campustable.campustablebeclone.domain.order.entity.Order;
 import shop.campustable.campustablebeclone.domain.order.entity.OrderItem;
 import shop.campustable.campustablebeclone.domain.order.dto.OrderSearchRequest;
+import shop.campustable.campustablebeclone.domain.order.event.OrderCreatedEvent;
 import shop.campustable.campustablebeclone.domain.order.repository.OrderItemRepository;
 import shop.campustable.campustablebeclone.domain.order.repository.OrderRepository;
 import shop.campustable.campustablebeclone.domain.user.entity.User;
@@ -43,12 +45,12 @@ public class OrderService {
   private final OrderRepository orderRepository;
   private final UserRepository userRepository;
   private final CartRepository cartRepository;
-  private final OrderItemRepository orderItemRepository;
   private final CafeteriaRepository cafeteriaRepository;
   private final CategoryRepository categoryRepository;
   private final MenuRepository menuRepository;
   private final StringRedisTemplate stringRedisTemplate;
   private final CartItemRepository cartItemRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   public OrderResponse createOrder() {
     Long userId = SecurityUtil.getCurrentUserId();
@@ -113,24 +115,12 @@ public class OrderService {
     cart.resetCafeteriaId();
     cartItemRepository.deleteAllByCart(cart);
 
-    if (TransactionSynchronizationManager.isActualTransactionActive()) {
-      TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-        @Override
-        public void afterCommit() {
-          try {
-            orderItems.forEach(orderItem -> {
-              String key = "cafeteria:" + cafeteria.getId() + ":menu:rank";
-              stringRedisTemplate.opsForZSet().incrementScore(
-                  key, orderItem.getMenu().getId().toString(), orderItem.getQuantity()
-              );
-            });
-            log.info("createOrder: Redis 랭킹 업데이트 완료");
-          } catch (Exception e) {
-            log.warn("createOrder: Redis 랭킹 업데이트 실패: {}", e.getMessage());
-          }
-        }
-      });
-    }
+    eventPublisher.publishEvent(new OrderCreatedEvent(
+        cafeteria.getId(),
+        orderItems,
+        savedOrder.getId()
+    ));
+
 
     log.info("주문 생성 완료: 주문ID={}, 유저ID={}", savedOrder.getId(), userId);
     return OrderResponse.from(savedOrder);
